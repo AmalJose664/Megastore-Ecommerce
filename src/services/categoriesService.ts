@@ -1,3 +1,4 @@
+import { CONFIG } from '@/configs/env.config';
 import { apiHandler } from './apiHandler';
 import {
     Category,
@@ -6,7 +7,7 @@ import {
     ApiResponse
 } from '@/types';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = CONFIG.API_BASE_URL;
 
 class CategoriesService {
     // GET /api/v1/categories (Get Category Tree)

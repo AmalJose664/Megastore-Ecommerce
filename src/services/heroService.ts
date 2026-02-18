@@ -1,3 +1,4 @@
+import { CONFIG } from '@/configs/env.config';
 import { apiHandler } from './apiHandler';
 import {
     HeroSection,
@@ -5,7 +6,7 @@ import {
     UpdateHeroRequest
 } from '@/types';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = CONFIG.API_BASE_URL;
 
 class HeroService {
     // GET /api/hero/all (List All Hero Sections)

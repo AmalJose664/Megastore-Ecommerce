@@ -12,7 +12,8 @@ import {
   Leaf,
   MessageSquareQuote,
   LayoutTemplate,
-  Tag
+  Tag,
+  Ticket
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,7 @@ const navItems = [
   { to: '/categories', icon: FolderTree, label: 'Categories' },
   { to: '/hero', icon: LayoutTemplate, label: 'Hero Sections' },
   { to: '/promo', icon: Tag, label: 'Promotions' },
+  { to: '/coupons', icon: Ticket, label: 'Coupons' },
   { to: '/testimonials', icon: MessageSquareQuote, label: 'Testimonials' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];

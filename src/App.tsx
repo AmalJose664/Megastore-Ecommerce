@@ -18,6 +18,7 @@ import CategoriesPage from "./pages/CategoriesPage";
 import TestimonialsPage from "./pages/TestimonialsPage";
 import HeroPage from "./pages/HeroPage";
 import PromoPage from "./pages/PromoPage";
+import CouponsPage from "./pages/CouponsPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/testimonials" element={<TestimonialsPage />} />
               <Route path="/hero" element={<HeroPage />} />
               <Route path="/promo" element={<PromoPage />} />
+              <Route path="/coupons" element={<CouponsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

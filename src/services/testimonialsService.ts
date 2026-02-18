@@ -1,3 +1,4 @@
+import { CONFIG } from '@/configs/env.config';
 import { apiHandler } from './apiHandler';
 import {
     Testimonial,
@@ -6,7 +7,7 @@ import {
     UpdateTestimonialRequest
 } from '@/types';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL =  CONFIG.API_BASE_URL;
 
 class TestimonialsService {
     // GET /api/testimonials (List Testimonials - Public)

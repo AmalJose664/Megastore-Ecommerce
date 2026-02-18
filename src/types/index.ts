@@ -28,39 +28,48 @@ export interface Product {
 
 export interface Order {
   id: string;
+  _id?: string;
   orderNumber: string;
-  customer: {
+  user: string;
+  customer?: {
     id: string;
     name: string;
     email: string;
   };
   items: OrderItem[];
   subtotal: number;
+  discount: number;
+  shippingFee: number;
   tax: number;
-  shipping: number;
   total: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentMethod: string;
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'completed';
   shippingAddress: Address;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface OrderItem {
-  id: string;
-  productId: string;
-  productName: string;
-  productImage: string;
+  product: string;
+  name: string;
+  image: string;
   quantity: number;
   price: number;
   total: number;
+  _id?: string;
+  id?: string;
 }
 
 export interface Address {
-  street: string;
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
   city: string;
   state: string;
-  zipCode: string;
+  postalCode: string;
   country: string;
 }
 
@@ -394,4 +403,39 @@ export interface CreatePromoRequest {
   isActive?: boolean;
 }
 
-export interface UpdatePromoRequest extends Partial<CreatePromoRequest> { }
+// Coupon related types
+export interface Coupon {
+  _id: string;
+  code: string;
+  description: string;
+  discountType: 'fixed' | 'percentage';
+  discountValue: number;
+  minPurchaseAmount: number;
+  validFrom: string;
+  validUntil: string;
+  usageLimit: number;
+  usedCount: number;
+  usedBy: string[];
+  isListed: boolean;
+  isReusable: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCouponRequest {
+  code: string;
+  description: string;
+  discountType: 'fixed' | 'percentage';
+  discountValue: number;
+  minPurchaseAmount: number;
+  validFrom: string;
+  validUntil: string;
+  usageLimit: number;
+  isListed: boolean;
+  isReusable: boolean;
+  isActive?: boolean;
+}
+
+export interface UpdateCouponRequest extends Partial<CreateCouponRequest> { }
+

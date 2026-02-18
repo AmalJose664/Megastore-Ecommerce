@@ -55,8 +55,8 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
           </thead>
           <tbody>
             {orders.map((order, index) => (
-              <tr 
-                key={order.id} 
+              <tr
+                key={order._id || order.id || index}
                 className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
@@ -93,10 +93,10 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                   ${order.total.toFixed(2)}
                 </td>
                 <td className="p-4 text-right">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="icon"
-                    onClick={() => navigate(`/orders/${order.id}`)}
+                    onClick={() => navigate(`/orders/${order._id || order.id}`)}
                   >
                     <Eye className="w-4 h-4" />
                   </Button>

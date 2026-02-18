@@ -1,3 +1,4 @@
+import { CONFIG } from '@/configs/env.config';
 import { apiHandler } from './apiHandler';
 import {
   ProductListResponse,
@@ -10,7 +11,7 @@ import {
   ApiProduct
 } from '@/types';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = CONFIG.API_BASE_URL;
 
 class ProductsService {
   // Build query string from parameters
