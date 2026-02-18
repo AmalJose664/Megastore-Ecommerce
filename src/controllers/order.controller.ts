@@ -23,7 +23,8 @@ export class OrderController {
   });
 
   getOrderById = asyncHandler(async (req: Request, res: Response) => {
-    const order = await orderService.getOrderById(req.params.id, req.user!.userId);
+    const userId = req.user?.role === 'admin' ? undefined : req.user!.userId;
+    const order = await orderService.getOrderById(req.params.id, userId);
 
     res.json({
       success: true,

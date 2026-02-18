@@ -1,27 +1,37 @@
-import { orderRepository, cartRepository, productRepository } from '../repositories';
+import { orderRepository, cartRepository, productRepository, addressRepository } from '../repositories';
 import { ApiError } from '../utils/ApiError';
-import { IOrder, OrderStatus, PaymentMethod, IOrderItem } from '../types';
+import { IOrder, OrderStatus, PaymentMethod, IOrderItem, PaymentStatus } from '../types';
 import { PaginatedResponse } from '../types';
 import { buildPaginatedResponse } from '../utils/pagination';
+import { couponService } from './coupon.service';
 
 export class OrderService {
   async createOrder(
     userId: string,
     data: {
-      shippingAddress: any;
+      addressId: string;
       paymentMethod: PaymentMethod;
       couponCode?: string;
       notes?: string;
     }
   ): Promise<IOrder> {
-    // Get user's cart
+    // 1. Get user's cart
     const cart = await cartRepository.findByUser(userId);
 
     if (!cart || cart.items.length === 0) {
       throw ApiError.badRequest('Cart is empty');
     }
 
-    // Verify stock availability and prepare order items
+    // 2. Get and verify address
+    const address = await addressRepository.findById(data.addressId);
+    if (!address) {
+      throw ApiError.notFound('Address not found');
+    }
+    if (address.user.toString() !== userId) {
+      throw ApiError.forbidden('This address does not belong to you');
+    }
+
+    // 3. Verify stock availability and prepare order items
     const orderItems: IOrderItem[] = [];
     let subtotal = 0;
 
@@ -44,33 +54,59 @@ export class OrderService {
       subtotal += item.price * item.quantity;
     }
 
-    // Calculate totals (simplified - implement coupon logic here)
-    const discount = 0;
-    const shippingFee = subtotal >= 500 ? 0 : 50;
-    const tax = Math.round(subtotal * 0.18 * 100) / 100; // 18% tax
+    // 4. Calculate coupon discount
+    let discount = 0;
+    if (data.couponCode) {
+      const coupon = await couponService.validateCoupon(data.couponCode, subtotal, userId);
+      discount = couponService.calculateDiscount(coupon, subtotal);
+
+      // Mark coupon as used
+      await couponService.applyCoupon(data.couponCode, userId);
+    }
+
+    // 5. Calculate other totals
+    const shippingFee = (subtotal - discount) >= 500 ? 0 : 50;
+    const tax = Math.round((subtotal - discount) * 0.18 * 100) / 100; // 18% tax on discounted amount
     const total = subtotal - discount + shippingFee + tax;
 
-    // Create order
+    // 6. Payment status logic: Default is PENDING, for COD it's technically COMPLETED (confirmed order)
+    const paymentStatus = data.paymentMethod === PaymentMethod.COD
+      ? PaymentStatus.COMPLETED
+      : PaymentStatus.PENDING;
+
+    // 7. Create order
     const order = await orderRepository.create({
       user: userId,
       items: orderItems,
-      shippingAddress: data.shippingAddress,
+      shippingAddress: {
+        fullName: address.fullName,
+        phone: address.phone,
+        addressLine1: address.addressLine1,
+        addressLine2: address.addressLine2,
+        city: address.city,
+        state: address.state,
+        postalCode: address.postalCode,
+        country: address.country,
+      },
       subtotal,
       discount,
       shippingFee,
       tax,
       total,
+      status: OrderStatus.PENDING,
       paymentMethod: data.paymentMethod,
+      paymentStatus,
       couponCode: data.couponCode,
       notes: data.notes,
     } as any);
 
-    // Reduce stock for each product
+    // 8. Reduce stock for each product
     for (const item of cart.items) {
-      await productRepository.updateStock(item.product.toString(), -item.quantity);
+      const product: any = item.product;
+      await productRepository.updateStock(product._id.toString(), -item.quantity);
     }
 
-    // Clear cart
+    // 9. Clear cart
     await cartRepository.clearCart(userId);
 
     return order;

@@ -8,3 +8,5 @@ export * from './testimonial.controller';
 export * from './banner.controller';
 export * from './hero.controller';
 export * from './promo.controller';
+export * from './address.controller';
+export * from './coupon.controller';

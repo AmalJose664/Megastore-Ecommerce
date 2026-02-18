@@ -246,6 +246,9 @@ export interface ICoupon extends Document {
   validFrom: Date;
   validUntil: Date;
   isActive: boolean;
+  isListed: boolean;
+  isReusable: boolean;
+  usedBy: Types.ObjectId[];
   applicableCategories?: Types.ObjectId[];
   applicableProducts?: Types.ObjectId[];
   createdAt: Date;

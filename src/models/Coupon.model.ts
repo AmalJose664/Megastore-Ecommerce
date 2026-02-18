@@ -56,6 +56,19 @@ const couponSchema = new Schema<ICoupon>(
       type: Boolean,
       default: true,
     },
+    isListed: {
+      type: Boolean,
+      default: true,
+    },
+    isReusable: {
+      type: Boolean,
+      default: false,
+    },
+    usedBy: {
+      type: [Schema.Types.ObjectId],
+      ref: 'User',
+      default: [],
+    },
     applicableCategories: {
       type: [Schema.Types.ObjectId],
       ref: 'Category',

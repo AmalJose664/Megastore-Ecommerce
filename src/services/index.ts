@@ -8,3 +8,5 @@ export * from './testimonial.service';
 export * from './banner.service';
 export * from './hero.service';
 export * from './promo.service';
+export * from './address.service';
+export * from './coupon.service';

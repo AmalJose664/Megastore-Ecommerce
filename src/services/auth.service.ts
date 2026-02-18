@@ -27,7 +27,7 @@ export class AuthService {
     await userRepository.updateRefreshToken(user._id.toString(), tokens.refreshToken);
 
     return {
-      user: user.toJSON(),
+      user: user.toJSON() as any,
       tokens,
     };
   }
@@ -53,7 +53,7 @@ export class AuthService {
     await userRepository.updateRefreshToken(user._id.toString(), tokens.refreshToken);
 
     return {
-      user: user.toJSON(),
+      user: user.toJSON() as any,
       tokens,
     };
   }

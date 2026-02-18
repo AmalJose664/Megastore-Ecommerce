@@ -26,7 +26,8 @@ export const errorHandler = (
 
   // Handle Mongoose cast errors
   if (err.name === 'CastError') {
-    error = ApiError.badRequest('Invalid ID format');
+    const castErr = err as any;
+    error = ApiError.badRequest(`Invalid ID format for ${castErr.path}: ${castErr.value}`);
   }
 
   // Handle JWT errors
