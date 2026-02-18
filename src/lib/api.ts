@@ -1,50 +1,92 @@
 const API_BASE_URL = "http://localhost:5000/api";
 
+const getHeader = () => {
+    const token = localStorage.getItem("accessToken");
+    return {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+};
+
+export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers: {
+            ...getHeader(),
+            ...options.headers,
+        },
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || "Something went wrong");
+    }
+    return data;
+};
+
+// Auth API
+export const loginUser = async (credentials: any) => {
+    return apiRequest("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(credentials),
+    });
+};
+
+export const registerUser = async (userData: any) => {
+    return apiRequest("/auth/register", {
+        method: "POST",
+        body: JSON.stringify(userData),
+    });
+};
+
+export const logoutUser = async (refreshToken: string) => {
+    return apiRequest("/auth/logout", {
+        method: "POST",
+        body: JSON.stringify({ refreshToken }),
+    });
+};
+
+export const refreshTokenApi = async (refreshToken: string) => {
+    return apiRequest("/auth/refresh-token", {
+        method: "POST",
+        body: JSON.stringify({ refreshToken }),
+    });
+};
+
+export const fetchUserProfile = async () => {
+    return apiRequest("/auth/profile");
+};
+
+// Existing API
 export const fetchProducts = async (params: Record<string, any> = {}) => {
     const query = new URLSearchParams(params).toString();
-    const response = await fetch(`${API_BASE_URL}/products?${query}`);
-    if (!response.ok) throw new Error("Failed to fetch products");
-    return response.json();
+    return apiRequest(`/products?${query}`);
 };
 
 export const fetchProductById = async (id: string) => {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`);
-    if (!response.ok) throw new Error("Failed to fetch product");
-    return response.json();
+    return apiRequest(`/products/${id}`);
 };
 
 export const fetchFeaturedProducts = async () => {
-    const response = await fetch(`${API_BASE_URL}/products/featured`);
-    if (!response.ok) throw new Error("Failed to fetch featured products");
-    return response.json();
+    return apiRequest("/products/featured");
 };
 
 export const fetchNewProducts = async () => {
-    const response = await fetch(`${API_BASE_URL}/products/new`);
-    if (!response.ok) throw new Error("Failed to fetch new products");
-    return response.json();
+    return apiRequest("/products/new");
 };
 
 export const fetchCategories = async () => {
-    const response = await fetch(`${API_BASE_URL}/categories`);
-    if (!response.ok) throw new Error("Failed to fetch categories");
-    return response.json();
+    return apiRequest("/categories");
 };
 
 export const fetchTestimonials = async () => {
-    const response = await fetch(`${API_BASE_URL}/testimonials`);
-    if (!response.ok) throw new Error("Failed to fetch testimonials");
-    return response.json();
+    return apiRequest("/testimonials");
 };
 
 export const fetchHero = async () => {
-    const response = await fetch(`${API_BASE_URL}/hero`);
-    if (!response.ok) throw new Error("Failed to fetch hero data");
-    return response.json();
+    return apiRequest("/hero");
 };
 
 export const fetchPromo = async () => {
-    const response = await fetch(`${API_BASE_URL}/promo`);
-    if (!response.ok) throw new Error("Failed to fetch promo data");
-    return response.json();
+    return apiRequest("/promo");
 };

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Search, User, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -17,6 +18,7 @@ export function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
   const { totalItems, toggleCart } = useCart();
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -47,8 +49,8 @@ export function Navbar() {
               <Link
                 to={link.path}
                 className={`relative py-2 text-sm font-medium transition-colors hover:text-primary ${location.pathname === link.path
-                    ? "text-primary"
-                    : "text-muted-foreground"
+                  ? "text-primary"
+                  : "text-muted-foreground"
                   }`}
               >
                 {link.name}
@@ -75,9 +77,15 @@ export function Navbar() {
             <Search className="h-5 w-5" />
           </Button>
 
-          <Link to="/account">
+          <Link to={user ? "/profile" : "/login"}>
             <Button variant="ghost" size="icon" aria-label="Account">
-              <User className="h-5 w-5" />
+              {user ? (
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                  {user.firstName[0]}
+                </div>
+              ) : (
+                <User className="h-5 w-5" />
+              )}
             </Button>
           </Link>
 
@@ -118,8 +126,8 @@ export function Navbar() {
                     to={link.path}
                     onClick={() => setIsMenuOpen(false)}
                     className={`block rounded-lg px-4 py-3 text-base font-medium transition-colors ${location.pathname === link.path
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted"
                       }`}
                   >
                     {link.name}
