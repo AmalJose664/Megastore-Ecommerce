@@ -37,6 +37,8 @@ export class PromoController {
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
 
+        console.log(`[PromoController] Admin FETCH: Returning ${promos} promo sections`);
+
         res.status(200).json({
             success: true,
             data: promos,
@@ -97,7 +99,7 @@ export class PromoController {
 
         const promo = await promoService.activatePromo(id);
 
-        console.log(`[PromoController] Successfully processed activation for: "${promo.title}" (${promo._id})`);
+        console.log(`[PromoController] Successfully processed activation for: "${promo.title}" (${promo})`);
 
         res.status(200).json({
             success: true,

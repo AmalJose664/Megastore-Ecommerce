@@ -34,7 +34,7 @@ ${signal} received. Starting graceful shutdown...`);
       setTimeout(() => {
         console.error('Forced shutdown after timeout');
         process.exit(1);
-      }, 10000);
+      }, 10000000);
     };
 
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
