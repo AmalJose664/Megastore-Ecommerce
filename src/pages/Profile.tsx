@@ -14,8 +14,8 @@ const Profile = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-pulse text-indigo-600 font-medium">Loading profile...</div>
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="animate-pulse text-primary font-medium font-display text-xl">Loading your profile...</div>
             </div>
         );
     }
@@ -26,29 +26,29 @@ const Profile = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-background flex flex-col antialiased">
             <Navbar />
             <main className="flex-grow container mx-auto px-4 py-12">
                 <div className="max-w-4xl mx-auto">
-                    <header className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">My Account</h1>
-                        <p className="text-gray-500">Manage your profile and view your order history</p>
+                    <header className="mb-10 animate-fade-in">
+                        <h1 className="text-4xl font-display font-bold text-foreground">My Account</h1>
+                        <p className="text-muted-foreground mt-2">Manage your profile and track your luxury orders</p>
                     </header>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Sidebar Navigation */}
-                        <aside className="space-y-2">
-                            <nav className="flex flex-col space-y-1">
-                                <Link to="/profile" className="flex items-center gap-3 px-4 py-3 bg-white text-indigo-600 rounded-lg shadow-sm font-medium border-l-4 border-indigo-600">
+                        <aside className="space-y-4 animate-fade-up">
+                            <nav className="flex flex-col space-y-2">
+                                <Link to="/profile" className="flex items-center gap-3 px-5 py-3.5 bg-card text-primary rounded-xl shadow-soft font-semibold border-l-4 border-primary transition-all">
                                     <User className="h-5 w-5" />
                                     Profile Details
                                 </Link>
-                                <Link to="/orders" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-white hover:text-indigo-600 rounded-lg transition-all font-medium">
-                                    <Package className="h-5 w-5" />
+                                <Link to="/orders" className="flex items-center gap-3 px-5 py-3.5 text-muted-foreground hover:bg-card hover:text-primary rounded-xl transition-all font-medium group">
+                                    <Package className="h-5 w-5 group-hover:scale-110 transition-transform" />
                                     Order History
                                 </Link>
-                                <Link to="/settings" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-white hover:text-indigo-600 rounded-lg transition-all font-medium">
-                                    <Settings className="h-5 w-5" />
+                                <Link to="/settings" className="flex items-center gap-3 px-5 py-3.5 text-muted-foreground hover:bg-card hover:text-primary rounded-xl transition-all font-medium group">
+                                    <Settings className="h-5 w-5 group-hover:rotate-45 transition-transform" />
                                     Security Settings
                                 </Link>
                             </nav>
@@ -56,7 +56,7 @@ const Profile = () => {
                             <Button
                                 variant="outline"
                                 onClick={logout}
-                                className="w-full flex items-center justify-center gap-2 border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 h-12 mt-4"
+                                className="w-full flex items-center justify-center gap-2 border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground h-12 mt-4 rounded-xl transition-all font-semibold"
                             >
                                 <LogOut className="h-5 w-5" />
                                 Sign Out
@@ -64,45 +64,54 @@ const Profile = () => {
                         </aside>
 
                         {/* Main Content */}
-                        <div className="md:col-span-2 space-y-6">
-                            <Card className="border-none shadow-sm">
-                                <CardHeader>
-                                    <CardTitle className="text-xl">Personal Information</CardTitle>
+                        <div className="md:col-span-2 space-y-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+                            <Card className="border-border/50 shadow-card bg-card/50 backdrop-blur-sm overflow-hidden">
+                                <CardHeader className="border-b border-border/50 pb-4">
+                                    <CardTitle className="text-xl font-display font-bold text-foreground">Personal Information</CardTitle>
                                 </CardHeader>
-                                <CardContent className="space-y-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
-                                            <User className="h-10 w-10" />
+                                <CardContent className="space-y-8 pt-8">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-24 h-24 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border-2 border-primary/20 shadow-inner">
+                                            <User className="h-12 w-12" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-gray-900">{user.firstName} {user.lastName}</h3>
-                                            <p className="text-sm text-gray-500 capitalize">{user.role} Account</p>
+                                            <h3 className="text-2xl font-display font-bold text-foreground uppercase tracking-tight">{user.firstName} {user.lastName}</h3>
+                                            <p className="text-sm text-muted-foreground font-medium bg-secondary px-3 py-1 rounded-full inline-block mt-1">
+                                                {user.role.toUpperCase()} Account
+                                            </p>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
                                         <div className="space-y-1">
-                                            <Label className="text-gray-500 font-normal">First Name</Label>
-                                            <p className="font-semibold text-gray-900">{user.firstName}</p>
+                                            <Label className="text-muted-foreground font-medium text-xs uppercase tracking-widest">First Name</Label>
+                                            <p className="text-lg font-semibold text-foreground">{user.firstName}</p>
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-gray-500 font-normal">Last Name</Label>
-                                            <p className="font-semibold text-gray-900">{user.lastName}</p>
+                                            <Label className="text-muted-foreground font-medium text-xs uppercase tracking-widest">Last Name</Label>
+                                            <p className="text-lg font-semibold text-foreground">{user.lastName}</p>
                                         </div>
                                         <div className="flex items-start gap-3">
-                                            <Mail className="h-5 w-5 text-gray-400 mt-0.5" />
+                                            <div className="p-2 bg-secondary rounded-lg">
+                                                <Mail className="h-5 w-5 text-primary" />
+                                            </div>
                                             <div className="space-y-1">
-                                                <Label className="text-gray-500 font-normal">Email Address</Label>
-                                                <p className="font-semibold text-gray-900">{user.email}</p>
+                                                <Label className="text-muted-foreground font-medium text-xs uppercase tracking-widest">Email Address</Label>
+                                                <p className="text-lg font-semibold text-foreground">{user.email}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-3">
-                                            <Shield className="h-5 w-5 text-gray-400 mt-0.5" />
+                                            <div className="p-2 bg-secondary rounded-lg">
+                                                <Shield className="h-5 w-5 text-primary" />
+                                            </div>
                                             <div className="space-y-1">
-                                                <Label className="text-gray-500 font-normal">Account Status</Label>
-                                                <p className="font-semibold px-2 py-0.5 bg-green-100 text-green-700 rounded-full inline-block text-xs uppercase tracking-wider">
-                                                    {user.isActive ? "Active" : "Inactive"}
-                                                </p>
+                                                <Label className="text-muted-foreground font-medium text-xs uppercase tracking-widest">Account Status</Label>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className={`w-2 h-2 rounded-full ${user.isActive ? "bg-success" : "bg-destructive"} animate-pulse`} />
+                                                    <p className={`font-bold ${user.isActive ? "text-success" : "text-destructive"}`}>
+                                                        {user.isActive ? "Active" : "Inactive"}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -110,25 +119,25 @@ const Profile = () => {
                             </Card>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                                <Card className="border-border/50 shadow-soft hover:shadow-card transition-all cursor-pointer group bg-card/30">
                                     <CardContent className="p-6 flex items-center gap-4">
-                                        <div className="p-3 bg-blue-100 text-blue-600 rounded-lg">
+                                        <div className="p-3 bg-primary/10 text-primary rounded-xl group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                                             <Package className="h-6 w-6" />
                                         </div>
                                         <div>
-                                            <p className="text-sm text-gray-500 font-medium">Recent Orders</p>
-                                            <p className="text-2xl font-bold">0</p>
+                                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Recent Orders</p>
+                                            <p className="text-3xl font-display font-bold">0</p>
                                         </div>
                                     </CardContent>
                                 </Card>
-                                <Card className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                                <Card className="border-border/50 shadow-soft hover:shadow-card transition-all cursor-pointer group bg-card/30">
                                     <CardContent className="p-6 flex items-center gap-4">
-                                        <div className="p-3 bg-purple-100 text-purple-600 rounded-lg">
+                                        <div className="p-3 bg-primary/10 text-primary rounded-xl group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                                             <CreditCard className="h-6 w-6" />
                                         </div>
                                         <div>
-                                            <p className="text-sm text-gray-500 font-medium">Saved Cards</p>
-                                            <p className="text-2xl font-bold">0</p>
+                                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Saved Cards</p>
+                                            <p className="text-3xl font-display font-bold">0</p>
                                         </div>
                                     </CardContent>
                                 </Card>

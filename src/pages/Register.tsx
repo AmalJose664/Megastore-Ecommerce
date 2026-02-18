@@ -37,96 +37,96 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
-            <Card className="w-full max-w-lg border-none shadow-2xl glassmorphism">
-                <CardHeader className="space-y-1 flex flex-col items-center">
-                    <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-indigo-200">
-                        <UserPlus className="text-white w-6 h-6" />
+        <div className="min-h-screen flex items-center justify-center bg-background hero-gradient p-4 antialiased">
+            <Card className="w-full max-w-lg border-border/50 shadow-elevated bg-card/80 backdrop-blur-xl animate-fade-up">
+                <CardHeader className="space-y-2 flex flex-col items-center pb-8">
+                    <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20 -rotate-3 hover:rotate-0 transition-transform duration-300">
+                        <UserPlus className="text-primary-foreground w-7 h-7" />
                     </div>
-                    <CardTitle className="text-2xl font-bold tracking-tight text-gray-900">Create account</CardTitle>
-                    <CardDescription className="text-gray-500">
-                        Join us to start shopping with premium benefits
+                    <CardTitle className="text-3xl font-display font-bold tracking-tight text-foreground">Create Account</CardTitle>
+                    <CardDescription className="text-muted-foreground text-center">
+                        Join our exclusive community for a premium shopping experience
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="firstName">First Name</Label>
+                                <Label htmlFor="firstName" className="text-sm font-medium text-foreground/80">First Name</Label>
                                 <Input
                                     id="firstName"
                                     placeholder="John"
                                     required
                                     value={formData.firstName}
                                     onChange={handleChange}
-                                    className="bg-white/50 border-gray-200 focus:border-indigo-500 transition-all"
+                                    className="bg-background/50 border-border focus:border-primary focus:ring-primary/20 transition-all h-11"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="lastName">Last Name</Label>
+                                <Label htmlFor="lastName" className="text-sm font-medium text-foreground/80">Last Name</Label>
                                 <Input
                                     id="lastName"
                                     placeholder="Doe"
                                     required
                                     value={formData.lastName}
                                     onChange={handleChange}
-                                    className="bg-white/50 border-gray-200 focus:border-indigo-500 transition-all"
+                                    className="bg-background/50 border-border focus:border-primary focus:ring-primary/20 transition-all h-11"
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email" className="text-sm font-medium text-foreground/80">Email Address</Label>
                             <Input
                                 id="email"
                                 type="email"
-                                placeholder="name@example.com"
+                                placeholder="john@example.com"
                                 required
                                 value={formData.email}
                                 onChange={handleChange}
-                                className="bg-white/50 border-gray-200 focus:border-indigo-500 transition-all"
+                                className="bg-background/50 border-border focus:border-primary focus:ring-primary/20 transition-all h-11"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="phone">Phone Number (Optional)</Label>
+                            <Label htmlFor="phone" className="text-sm font-medium text-foreground/80">Phone Number (Optional)</Label>
                             <Input
                                 id="phone"
                                 type="tel"
                                 placeholder="9876543210"
                                 value={formData.phone}
                                 onChange={handleChange}
-                                className="bg-white/50 border-gray-200 focus:border-indigo-500 transition-all"
+                                className="bg-background/50 border-border focus:border-primary focus:ring-primary/20 transition-all h-11"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password" className="text-sm font-medium text-foreground/80">Password</Label>
                             <Input
                                 id="password"
                                 type="password"
                                 required
                                 value={formData.password}
                                 onChange={handleChange}
-                                className="bg-white/50 border-gray-200 focus:border-indigo-500 transition-all"
+                                className="bg-background/50 border-border focus:border-primary focus:ring-primary/20 transition-all h-11"
                             />
                         </div>
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold h-11 transition-all flex items-center justify-center gap-2 mt-2"
+                            className="w-full gradient-primary text-primary-foreground font-semibold h-12 transition-all hover:shadow-lg hover:shadow-primary/25 flex items-center justify-center gap-2 mt-2 group"
                         >
                             {loading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-5 w-5 animate-spin" />
                             ) : (
                                 <>
-                                    Register <ArrowRight className="h-4 w-4" />
+                                    Create Account <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                                 </>
                             )}
                         </Button>
                     </form>
                 </CardContent>
-                <CardFooter className="flex flex-col space-y-4">
-                    <div className="text-sm text-center text-gray-500">
-                        Already have an account?{" "}
-                        <Link to="/login" className="text-indigo-600 hover:text-indigo-500 font-semibold underline underline-offset-4">
+                <CardFooter className="flex flex-col space-y-4 pt-4 border-t border-border/50 mt-6">
+                    <div className="text-sm text-center text-muted-foreground">
+                        Already a member?{" "}
+                        <Link to="/login" className="text-primary hover:text-accent font-bold transition-colors underline underline-offset-4">
                             Sign In
                         </Link>
                     </div>
