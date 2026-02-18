@@ -1,23 +1,98 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  CreditCard,
-  Lock,
-  Check,
-  ChevronLeft,
-  Truck,
-  Package,
+  CreditCard, Lock, Check, ChevronLeft, Truck, Package, Plus, Star, Pencil, Trash2
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { apiRequest } from "@/lib/api";
+import { AddressList } from "@/components/profile/AddressList";
+import { AddressModal } from "@/components/profile/Address";
+
+/* ─── API helpers ─────────────────────────────────────────────── */
+const api = {
+  getAll: () => apiRequest("/addresses"),
+  create: (body) => apiRequest("/addresses", { method: "POST", body: JSON.stringify(body) }),
+  update: (id, body) => apiRequest(`/addresses/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  setDefault: (id) => apiRequest(`/addresses/${id}/default`, { method: "PATCH" }),
+  delete: (id) => apiRequest(`/addresses/${id}`, { method: "DELETE" }),
+};
+
+const EMPTY_FORM = {
+  fullName: "", phone: "", addressLine1: "", addressLine2: "",
+  city: "", state: "", postalCode: "", country: "India", isDefault: false,
+};
 
 const Checkout = () => {
   const { items, subtotal, clearCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [orderComplete, setOrderComplete] = useState(false);
+
+  /* ─── Address State ─────────────────────────────────────────── */
+  const [addresses, setAddresses] = useState([]);
+  const [addrLoading, setAddrLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+    api.getAll().then(res => {
+      if (res.success) {
+        setAddresses(res.data);
+        const def = res.data.find(a => a.isDefault);
+        if (def) setSelectedAddressId(def._id);
+        else if (res.data.length) setSelectedAddressId(res.data[0]._id);
+      }
+    }).finally(() => setAddrLoading(false));
+  }, [user]);
+
+  const openNew = () => { setEditTarget(null); setForm(EMPTY_FORM); setModalOpen(true); };
+  const openEdit = (addr) => { setEditTarget(addr); setForm({ ...addr }); setModalOpen(true); };
+  const closeModal = () => { setModalOpen(false); setEditTarget(null); };
+
+  const handleSaveAddress = async () => {
+    setSaving(true);
+    try {
+      if (editTarget) {
+        const res = await api.update(editTarget._id, form);
+        if (res.success) setAddresses(prev => prev.map(a => a._id === editTarget._id ? res.data : a));
+      } else {
+        const res = await api.create(form);
+        if (res.success) {
+          setAddresses(prev => {
+            let list = res.data.isDefault ? prev.map(a => ({ ...a, isDefault: false })) : prev;
+            return [...list, res.data];
+          });
+          if (!selectedAddressId) setSelectedAddressId(res.data._id);
+        }
+      }
+      closeModal();
+    } finally { setSaving(false); }
+  };
+
+  const handleSetDefault = async (id) => {
+    const res = await api.setDefault(id);
+    if (res.success) setAddresses(prev => prev.map(a => ({ ...a, isDefault: a._id === id })));
+  };
+
+  const handleDeleteAddress = async (id) => {
+    const res = await api.delete(id);
+    if (res.success) {
+      setAddresses(prev => prev.filter(a => a._id !== id));
+      if (selectedAddressId === id) setSelectedAddressId(null);
+    }
+    setDeleteConfirm(null);
+  };
 
   const shipping = subtotal > 100 ? 0 : 9.99;
   const tax = subtotal * 0.08;
@@ -25,6 +100,9 @@ const Checkout = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (step === 1 && !selectedAddressId) {
+      return; // prevent proceeding if no address selected
+    }
     if (step < 3) {
       setStep(step + 1);
     } else {
@@ -117,28 +195,25 @@ const Checkout = () => {
             {steps.map((s, index) => (
               <div key={s.number} className="flex items-center">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                    step >= s.number
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-muted-foreground"
-                  }`}
+                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors ${step >= s.number
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground"
+                    }`}
                 >
                   {step > s.number ? <Check className="h-5 w-5" /> : s.number}
                 </div>
                 <span
-                  className={`ml-2 hidden text-sm font-medium sm:block ${
-                    step >= s.number
-                      ? "text-foreground"
-                      : "text-muted-foreground"
-                  }`}
+                  className={`ml-2 hidden text-sm font-medium sm:block ${step >= s.number
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                    }`}
                 >
                   {s.title}
                 </span>
                 {index < steps.length - 1 && (
                   <div
-                    className={`mx-4 h-px w-8 sm:w-16 ${
-                      step > s.number ? "bg-primary" : "bg-border"
-                    }`}
+                    className={`mx-4 h-px w-8 sm:w-16 ${step > s.number ? "bg-primary" : "bg-border"
+                      }`}
                   />
                 )}
               </div>
@@ -159,56 +234,25 @@ const Checkout = () => {
                       <Truck className="h-5 w-5" />
                       Shipping Information
                     </h2>
-                    <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className="text-sm font-medium">First Name</label>
-                        <input
-                          type="text"
-                          required
-                          className="mt-1 w-full rounded-lg border border-input bg-background px-4 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Last Name</label>
-                        <input
-                          type="text"
-                          required
-                          className="mt-1 w-full rounded-lg border border-input bg-background px-4 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="text-sm font-medium">Email</label>
-                        <input
-                          type="email"
-                          required
-                          className="mt-1 w-full rounded-lg border border-input bg-background px-4 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="text-sm font-medium">Address</label>
-                        <input
-                          type="text"
-                          required
-                          className="mt-1 w-full rounded-lg border border-input bg-background px-4 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">City</label>
-                        <input
-                          type="text"
-                          required
-                          className="mt-1 w-full rounded-lg border border-input bg-background px-4 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Postal Code</label>
-                        <input
-                          type="text"
-                          required
-                          className="mt-1 w-full rounded-lg border border-input bg-background px-4 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                      </div>
-                    </div>
+
+                    <AddressList
+                      addresses={addresses}
+                      loading={addrLoading}
+                      onOpenNew={openNew}
+                      onOpenEdit={openEdit}
+                      onSetDefault={handleSetDefault}
+                      onDelete={handleDeleteAddress}
+                      deleteConfirm={deleteConfirm}
+                      setDeleteConfirm={setDeleteConfirm}
+                      selectedId={selectedAddressId}
+                      onSelect={(id) => setSelectedAddressId(id)}
+                    />
+
+                    {!selectedAddressId && !addrLoading && (
+                      <p className="mt-4 text-sm text-destructive font-medium flex items-center gap-1.5 animate-pulse">
+                        <Star className="h-3.5 w-3.5 fill-destructive" /> Please select or add a shipping address to continue.
+                      </p>
+                    )}
                   </motion.div>
                 )}
 
@@ -295,6 +339,28 @@ const Checkout = () => {
                         </div>
                       ))}
                     </div>
+
+                    <div className="mt-8 pt-6 border-t border-border/50">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-display font-medium text-foreground">Shipping To</h3>
+                        <button type="button" onClick={() => setStep(1)} className="text-xs font-bold uppercase tracking-widest text-primary hover:underline">Edit</button>
+                      </div>
+                      {(() => {
+                        const addr = addresses.find(a => a._id === selectedAddressId);
+                        if (!addr) return <p className="text-sm text-destructive">No address selected</p>;
+                        return (
+                          <div className="p-4 rounded-xl bg-secondary/30 border border-border/50">
+                            <p className="text-sm font-bold text-foreground">{addr.fullName}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {addr.addressLine1}{addr.addressLine2 ? `, ${addr.addressLine2}` : ""}
+                              <br />{addr.city}, {addr.state} {addr.postalCode}
+                              <br />{addr.country}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">{addr.phone}</p>
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </motion.div>
                 )}
 
@@ -360,6 +426,16 @@ const Checkout = () => {
         </div>
       </main>
       <Footer />
+      {modalOpen && (
+        <AddressModal
+          form={form}
+          setForm={setForm}
+          onClose={closeModal}
+          onSave={handleSaveAddress}
+          saving={saving}
+          isEdit={!!editTarget}
+        />
+      )}
     </>
   );
 };
