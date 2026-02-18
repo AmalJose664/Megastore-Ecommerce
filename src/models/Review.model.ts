@@ -7,13 +7,11 @@ const reviewSchema = new Schema<IReview>(
       type: Schema.Types.ObjectId,
       ref: 'Product',
       required: true,
-      index: true,
     },
     user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true,
     },
     rating: {
       type: Number,
@@ -59,7 +57,9 @@ const reviewSchema = new Schema<IReview>(
   {
     timestamps: true,
     toJSON: {
-       transform: (_doc, ret: any) => {
+      transform: (_doc, ret: any) => {
+        ret.id = ret._id;
+        delete ret._id;
         delete ret.__v;
         return ret;
       },

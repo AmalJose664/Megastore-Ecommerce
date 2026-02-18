@@ -7,7 +7,6 @@ const inventoryLogSchema = new Schema<IInventoryLog>(
       type: Schema.Types.ObjectId,
       ref: 'Product',
       required: true,
-      index: true,
     },
     type: {
       type: String,

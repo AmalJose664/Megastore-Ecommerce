@@ -1,7 +1,7 @@
 import { Model, Document, FilterQuery, UpdateQuery, QueryOptions, Types } from 'mongoose';
 
 export class BaseRepository<T extends Document> {
-  constructor(protected model: Model<T>) {}
+  constructor(protected model: Model<T>) { }
 
   async create(data: Partial<T>): Promise<T> {
     return this.model.create(data);
@@ -34,6 +34,13 @@ export class BaseRepository<T extends Document> {
     update: UpdateQuery<T>
   ): Promise<T | null> {
     return this.model.findOneAndUpdate(filter, update, { new: true, runValidators: true });
+  }
+
+  async updateMany(
+    filter: FilterQuery<T>,
+    update: UpdateQuery<T>
+  ): Promise<any> {
+    return this.model.updateMany(filter, update);
   }
 
   async deleteById(id: string | Types.ObjectId): Promise<T | null> {

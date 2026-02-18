@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "ts-node src/scripts/seed.ts",
+    "seed:admin": "ts-node src/scripts/seedAdmin.ts",
     "seed:dev": "ts-node src/scripts/seed.ts --env=dev",
     "lint": "eslint src/**/*.ts",
     "test": "jest"
@@ -33,7 +34,7 @@
     "nodemailer": "^6.9.7",
     "crypto": "^1.0.1"
   },
-  "devDependencies": {
+  "devDependencies": { 
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.6",
     "@types/bcryptjs": "^2.4.6",

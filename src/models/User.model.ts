@@ -23,6 +23,7 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
+      index: true,
     },
     password: {
       type: String,
@@ -68,7 +69,9 @@ const userSchema = new Schema<IUser>(
   {
     timestamps: true,
     toJSON: {
-       transform: (_doc, ret: any) => {
+      transform: (_doc, ret: any) => {
+        ret.id = ret._id;
+        delete ret._id;
         delete ret.password;
         delete ret.refreshToken;
         delete ret.resetPasswordToken;

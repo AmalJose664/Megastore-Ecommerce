@@ -79,7 +79,7 @@ export interface ICategory extends Document {
   name: string;
   slug: string;
   description: string;
-  image: string;
+  image?: string;
   parentCategory?: Types.ObjectId;
   isActive: boolean;
   displayOrder: number;
@@ -277,6 +277,41 @@ export interface IBanner extends Document {
   buttonText?: string;
   buttonLink?: string;
   position: string;
+  isActive: boolean;
+  displayOrder: number;
+  startDate?: Date;
+  endDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Hero Section Types
+export interface IHero extends Document {
+  _id: Types.ObjectId;
+  badge: string;
+  title: string;
+  subtitle: string;
+  ctaText: string;
+  ctaLink: string;
+  secondaryCtaText: string;
+  secondaryCtaLink: string;
+  image: string;
+  stats: { value: string; label: string }[];
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Promo Section Types
+export interface IPromo extends Document {
+  _id: Types.ObjectId;
+  tag: string;
+  title: string;
+  description: string;
+  code: string;
+  terms: string;
+  link: string;
+  image: string;
   isActive: boolean;
   displayOrder: number;
   startDate?: Date;

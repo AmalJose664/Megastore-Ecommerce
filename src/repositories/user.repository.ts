@@ -42,6 +42,10 @@ export class UserRepository extends BaseRepository<IUser> {
     }).select('+resetPasswordToken +resetPasswordExpires');
   }
 
+  async findByRefreshToken(refreshToken: string): Promise<IUser | null> {
+    return this.model.findOne({ refreshToken }).select('+refreshToken');
+  }
+
   async clearResetPasswordToken(userId: string): Promise<IUser | null> {
     return this.model.findByIdAndUpdate(
       userId,

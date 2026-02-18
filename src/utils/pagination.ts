@@ -1,4 +1,4 @@
-import { PaginationQuery, PaginatedResponse } from '../types';
+import { PaginationQuery } from '../types';
 import config from '../config/env';
 
 export interface PaginationOptions {
@@ -25,10 +25,13 @@ export const buildPaginatedResponse = <T>(
   total: number,
   page: number,
   limit: number
-): PaginatedResponse<T> => {
+): any => {
   return {
     success: true,
+    message: `Retrieved ${data.length} items successfully`,
     data,
+    totalItems: data.length,
+    total,
     pagination: {
       page,
       limit,

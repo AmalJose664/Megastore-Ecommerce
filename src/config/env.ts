@@ -3,6 +3,10 @@ import path from 'path';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
+// Debug logging
+console.log('ENV FILE PATH:', path.join(__dirname, '../../.env'));
+console.log('MONGODB_URI from env:', process.env.MONGODB_URI);
+
 interface EnvConfig {
   nodeEnv: string;
   port: number;
@@ -48,6 +52,7 @@ interface EnvConfig {
   };
   urls: {
     client: string;
+    admin: string;
     server: string;
   };
 }
@@ -56,10 +61,7 @@ const config: EnvConfig = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '5000', 10),
   apiVersion: process.env.API_VERSION || 'v1',
-  mongoUri:
-    process.env.NODE_ENV === 'production'
-      ? process.env.MONGODB_URI_PROD || ''
-      : process.env.MONGODB_URI || 'mongodb://localhost:27017/ecommerce',
+  mongoUri: process.env.MONGODB_URI || "REDACTED",
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET || 'access-secret-key',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'refresh-secret-key',
@@ -78,11 +80,11 @@ const config: EnvConfig = {
     from: process.env.EMAIL_FROM || 'noreply@ecommerce.com',
   },
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
+    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000', 'http://localhost:4000'],
   },
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-    maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+    maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '1000', 10),
   },
   pagination: {
     defaultPageSize: parseInt(process.env.DEFAULT_PAGE_SIZE || '20', 10),
@@ -99,7 +101,8 @@ const config: EnvConfig = {
     },
   },
   urls: {
-    client: process.env.CLIENT_URL || 'http://localhost:3000',
+    client: process.env.CLIENT_URL || 'http://localhost:4000',
+    admin: process.env.ADMIN_URL || 'http://localhost:3000',
     server: process.env.SERVER_URL || 'http://localhost:5000',
   },
 };

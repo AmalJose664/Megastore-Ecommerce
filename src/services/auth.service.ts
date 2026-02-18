@@ -27,13 +27,7 @@ export class AuthService {
     await userRepository.updateRefreshToken(user._id.toString(), tokens.refreshToken);
 
     return {
-      user: {
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-      },
+      user: user.toJSON(),
       tokens,
     };
   }
@@ -59,13 +53,7 @@ export class AuthService {
     await userRepository.updateRefreshToken(user._id.toString(), tokens.refreshToken);
 
     return {
-      user: {
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-      },
+      user: user.toJSON(),
       tokens,
     };
   }
@@ -88,8 +76,23 @@ export class AuthService {
     }
   }
 
+  async getProfile(userId: string): Promise<any> {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw ApiError.notFound('User not found');
+    }
+    return user;
+  }
+
   async logout(userId: string): Promise<void> {
     await userRepository.updateRefreshToken(userId, null);
+  }
+
+  async logoutWithToken(refreshToken: string): Promise<void> {
+    const user = await userRepository.findByRefreshToken(refreshToken);
+    if (user) {
+      await userRepository.updateRefreshToken(user._id.toString(), null);
+    }
   }
 
   async forgotPassword(email: string): Promise<string> {

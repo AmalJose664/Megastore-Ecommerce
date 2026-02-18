@@ -16,7 +16,12 @@ const app: Application = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: config.cors.origin,
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173'
+    ],
     credentials: true,
   })
 );
@@ -50,7 +55,7 @@ if (config.nodeEnv === 'development') {
 }
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/health', (_, res) => {
   res.json({
     success: true,
     message: 'Server is running',
@@ -60,7 +65,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use(`/api/${config.apiVersion}`, routes);
+app.use('/api', routes);
 
 // 404 handler
 app.use(notFound);

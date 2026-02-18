@@ -64,7 +64,7 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
     }
 
     if (filters.isNew !== undefined) {
-      query.isNew = filters.isNew;
+      query.isNewProduct = filters.isNew;
     }
 
     if (filters.inStock !== undefined) {
@@ -121,7 +121,7 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
 
   async getNewProducts(limit: number = 10): Promise<ProductDocument[]> {
     return this.model
-      .find({ isNew: true, isActive: true, inStock: true })
+      .find({ isNewProduct: true, isActive: true, inStock: true })
       .populate('category', 'name slug')
       .limit(limit)
       .sort({ createdAt: -1 });

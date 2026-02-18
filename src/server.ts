@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import app from './app';
 import config from './config/env';
 import connectDatabase from './config/database';
@@ -9,15 +12,11 @@ const startServer = async () => {
 
     // Start server
     const server = app.listen(config.port, () => {
-      console.log(`
-        ╔════════════════════════════════════════════╗
-        ║ 🚀 E-commerce Backend Server Started       ║
-        ╠════════════════════════════════════════════╣
-        ║ Environment: ${config.nodeEnv.padEnd(28)}  ║
-        ║ Port: ${String(config.port).padEnd(35)}      ║
-        ║ API Version: ${config.apiVersion.padEnd(28)} ║
-        ║ URL: http://localhost:${config.port.toString().padEnd(20)} ║
-        ╚════════════════════════════════════════════╝
+      console.log(` 
+         Environment: ${config.nodeEnv.padEnd(28)}  
+         Port: ${String(config.port).padEnd(35)}      
+         API Version: ${config.apiVersion.padEnd(28)}
+         URL: http://localhost:${config.port.toString().padEnd(20)} 
       `);
     });
 

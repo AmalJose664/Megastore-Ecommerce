@@ -43,7 +43,7 @@ export const errorHandler = (
 
   const response: any = {
     success: false,
-    error: message,
+    message: message,
   };
 
   // Include stack trace in development

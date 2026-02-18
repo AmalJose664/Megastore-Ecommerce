@@ -40,7 +40,6 @@ const productSchema = new Schema<ProductDocument>(
       type: Schema.Types.ObjectId,
       ref: 'Category',
       required: [true, 'Product category is required'],
-      index: true,
     },
     subcategory: {
       type: Schema.Types.ObjectId,
@@ -66,6 +65,7 @@ const productSchema = new Schema<ProductDocument>(
       unique: true,
       uppercase: true,
       trim: true,
+      index: true,
     },
     stock: {
       type: Number,
@@ -125,7 +125,9 @@ const productSchema = new Schema<ProductDocument>(
   {
     timestamps: true,
     toJSON: {
-       transform: (_doc, ret: any) => {
+      transform: (_doc, ret: any) => {
+        ret.id = ret._id;
+        delete ret._id;
         delete ret.__v;
         return ret;
       },
@@ -152,10 +154,10 @@ productSchema.index({ slug: 1 });
 productSchema.index({ category: 1 });
 productSchema.index({ sku: 1 });
 productSchema.index({ featured: 1 });
-productSchema.index({ isNew: 1 });
+productSchema.index({ isNewProduct: 1 });
 productSchema.index({ price: 1 });
 productSchema.index({ rating: -1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
 
-export const ProductModel = mongoose.model<ProductDocument >('Product', productSchema);
+export const ProductModel = mongoose.model<ProductDocument>('Product', productSchema);

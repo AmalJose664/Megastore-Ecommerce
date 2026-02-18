@@ -6,6 +6,12 @@ import { buildPaginatedResponse } from '../utils/pagination';
 
 export class ProductService {
   async createProduct(data: Partial<ProductDocument>): Promise<ProductDocument> {
+    // Sanitize subcategory
+    const sub = data.subcategory as any;
+    if (sub === 'none' || sub === '' || sub === 'null' || sub === '0' || sub === 0) {
+      data.subcategory = undefined;
+    }
+
     const existingSku = await productRepository.findBySku(data.sku!);
     if (existingSku) {
       throw ApiError.conflict('Product with this SKU already exists');
@@ -49,6 +55,12 @@ export class ProductService {
   }
 
   async updateProduct(id: string, data: Partial<ProductDocument>): Promise<ProductDocument> {
+    // Sanitize subcategory
+    const sub = data.subcategory as any;
+    if (sub === 'none' || sub === '' || sub === 'null' || sub === '0' || sub === 0) {
+      data.subcategory = undefined;
+    }
+
     if (data.sku) {
       const existingSku = await productRepository.findBySku(data.sku);
       if (existingSku && existingSku._id.toString() !== id) {

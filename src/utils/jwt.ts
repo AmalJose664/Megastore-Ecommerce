@@ -11,7 +11,7 @@ export const generateAccessToken = (userId: Types.ObjectId, role: string): strin
   return jwt.sign(
     { userId: userId.toString(), role },
     config.jwt.accessSecret,
-    { expiresIn: config.jwt.accessExpiresIn }
+    { expiresIn: config.jwt.accessExpiresIn } as jwt.SignOptions
   );
 };
 
@@ -19,16 +19,16 @@ export const generateRefreshToken = (userId: Types.ObjectId, role: string): stri
   return jwt.sign(
     { userId: userId.toString(), role },
     config.jwt.refreshSecret,
-    { expiresIn: config.jwt.refreshExpiresIn }
+    { expiresIn: config.jwt.refreshExpiresIn } as jwt.SignOptions
   );
 };
 
 export const verifyAccessToken = (token: string): JwtPayload => {
-  return jwt.verify(token, config.jwt.accessSecret) as JwtPayload;
+  return jwt.verify(token, config.jwt.accessSecret, { algorithms: ['HS256'] }) as JwtPayload;
 };
 
 export const verifyRefreshToken = (token: string): JwtPayload => {
-  return jwt.verify(token, config.jwt.refreshSecret) as JwtPayload;
+  return jwt.verify(token, config.jwt.refreshSecret, { algorithms: ['HS256'] }) as JwtPayload;
 };
 
 export const generateTokens = (userId: Types.ObjectId, role: string) => {

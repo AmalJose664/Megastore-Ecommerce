@@ -47,7 +47,6 @@ const orderSchema = new Schema<IOrder>(
             type: Schema.Types.ObjectId,
             ref: 'User',
             required: true,
-            index: true,
         },
         items: {
             type: [orderItemSchema],
@@ -98,7 +97,6 @@ const orderSchema = new Schema<IOrder>(
             type: String,
             enum: Object.values(OrderStatus),
             default: OrderStatus.PENDING,
-            index: true,
         },
         paymentMethod: {
             type: String,
@@ -109,7 +107,6 @@ const orderSchema = new Schema<IOrder>(
             type: String,
             enum: Object.values(PaymentStatus),
             default: PaymentStatus.PENDING,
-            index: true,
         },
         paymentId: {
             type: String,
@@ -142,10 +139,12 @@ const orderSchema = new Schema<IOrder>(
     {
         timestamps: true,
         toJSON: {
-  transform: (_doc, ret: any) => {
-    delete ret.__v;
-    return ret;
-  },
+            transform: (_doc, ret: any) => {
+                ret.id = ret._id;
+                delete ret._id;
+                delete ret.__v;
+                return ret;
+            },
         },
     }
 );

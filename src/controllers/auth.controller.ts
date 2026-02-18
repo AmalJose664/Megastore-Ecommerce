@@ -30,12 +30,21 @@ export class AuthController {
 
     res.json({
       success: true,
-      data: { tokens },
+      data: {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      },
     });
   });
 
   logout = asyncHandler(async (req: Request, res: Response) => {
-    await authService.logout(req.user!.userId);
+    const { refreshToken } = req.body;
+
+    if (refreshToken) {
+      await authService.logoutWithToken(refreshToken);
+    } else if (req.user) {
+      await authService.logout(req.user.userId);
+    }
 
     res.json({
       success: true,
@@ -74,10 +83,10 @@ export class AuthController {
   });
 
   getProfile = asyncHandler(async (req: Request, res: Response) => {
-    // This would be implemented with a UserService
+    const user = await authService.getProfile(req.user!.userId);
     res.json({
       success: true,
-      data: req.user,
+      data: user,
     });
   });
 }

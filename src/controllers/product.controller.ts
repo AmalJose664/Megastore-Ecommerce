@@ -29,9 +29,9 @@ export class ProductController {
       minPrice: req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined,
       maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined,
       minRating: req.query.minRating ? parseFloat(req.query.minRating as string) : undefined,
-      featured: req.query.featured === 'true',
-      isNew: req.query.isNew === 'true',
-      inStock: req.query.inStock === 'true',
+      featured: req.query.featured === 'true' ? true : req.query.featured === 'false' ? false : undefined,
+      isNew: req.query.isNew === 'true' ? true : req.query.isNew === 'false' ? false : undefined,
+      inStock: req.query.inStock === 'true' ? true : req.query.inStock === 'false' ? false : undefined,
       search: req.query.search as string,
       tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
     };

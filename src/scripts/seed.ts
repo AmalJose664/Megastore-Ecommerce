@@ -3,7 +3,7 @@ import config from '../config/env';
 import {
   User,
   Category,
-  Product,
+  ProductModel as Product,
   Testimonial,
   Banner,
 } from '../models';
@@ -28,7 +28,7 @@ const seedData = async () => {
     console.log('🗑️  Cleared existing data');
 
     // Create Admin User
-    const admin = await User.create({
+    await User.create({
       firstName: 'Admin',
       lastName: 'User',
       email: config.admin.email,
@@ -40,7 +40,7 @@ const seedData = async () => {
     console.log('👤 Admin user created');
 
     // Create Sample User
-    const user = await User.create({
+    await User.create({
       firstName: 'John',
       lastName: 'Doe',
       email: 'user@example.com',

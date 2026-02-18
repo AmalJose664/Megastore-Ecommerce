@@ -10,6 +10,7 @@ const couponSchema = new Schema<ICoupon>(
       uppercase: true,
       trim: true,
       maxlength: [50, 'Coupon code cannot exceed 50 characters'],
+      index: true,
     },
     description: {
       type: String,
@@ -69,7 +70,7 @@ const couponSchema = new Schema<ICoupon>(
   {
     timestamps: true,
     toJSON: {
-       transform: (_doc, ret: any) => {
+      transform: (_doc, ret: any) => {
         delete ret.__v;
         return ret;
       },
@@ -85,7 +86,6 @@ couponSchema.pre('save', function (next) {
   next();
 });
 
-couponSchema.index({ code: 1 });
 couponSchema.index({ isActive: 1, validFrom: 1, validUntil: 1 });
 
 export const Coupon = mongoose.model<ICoupon>('Coupon', couponSchema);

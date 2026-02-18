@@ -8,7 +8,6 @@ const wishlistSchema = new Schema<IWishlist>(
       ref: 'User',
       required: true,
       unique: true,
-      index: true,
     },
     products: {
       type: [Schema.Types.ObjectId],

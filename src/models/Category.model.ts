@@ -23,7 +23,6 @@ const categorySchema = new Schema<ICategory>(
     },
     image: {
       type: String,
-      required: [true, 'Category image is required'],
     },
     parentCategory: {
       type: Schema.Types.ObjectId,
@@ -43,7 +42,9 @@ const categorySchema = new Schema<ICategory>(
     timestamps: true,
     toJSON: {
       virtuals: true,
-       transform: (_doc, ret: any) => {
+      transform: (_doc, ret: any) => {
+        ret.id = ret._id;
+        delete ret._id;
         delete ret.__v;
         return ret;
       },

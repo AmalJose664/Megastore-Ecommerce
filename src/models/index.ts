@@ -10,4 +10,6 @@ export { Review } from './Review.model';
 export { Coupon } from './Coupon.model';
 export { Testimonial } from './Testimonial.model';
 export { Banner } from './Banner.model';
+export { Hero } from './Hero.model';
+export { Promo } from './Promo.model';
 export { InventoryLog } from './InventoryLog.model';
