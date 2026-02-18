@@ -90,3 +90,67 @@ export const fetchHero = async () => {
 export const fetchPromo = async () => {
     return apiRequest("/promo");
 };
+
+export const validateCoupon = async (code: string, cartTotal: number) => {
+    return apiRequest("/coupons/validate", {
+        method: "POST",
+        body: JSON.stringify({ code, cartTotal }),
+    });
+};
+
+export const fetchCoupons = async () => {
+    return apiRequest("/coupons");
+};
+
+export const createOrder = async (orderData: { addressId: string, paymentMethod: string, couponCode?: string, notes?: string }) => {
+    return apiRequest("/orders", {
+        method: "POST",
+        body: JSON.stringify(orderData),
+    });
+};
+
+export const fetchMyOrders = async (page: number = 1, limit: number = 10) => {
+    return apiRequest(`/orders/my-orders?page=${page}&limit=${limit}`);
+};
+
+export const fetchOrderDetails = async (id: string) => {
+    return apiRequest(`/orders/${id}`);
+};
+
+export const cancelOrder = async (id: string, reason: string) => {
+    return apiRequest(`/orders/${id}/cancel`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+    });
+};
+
+// Cart API
+export const fetchCart = async () => {
+    return apiRequest("/cart");
+};
+
+export const addToCartApi = async (productId: string, quantity: number) => {
+    return apiRequest("/cart/items", {
+        method: "POST",
+        body: JSON.stringify({ productId, quantity }),
+    });
+};
+
+export const updateCartItemApi = async (productId: string, quantity: number) => {
+    return apiRequest(`/cart/items/${productId}`, {
+        method: "PUT",
+        body: JSON.stringify({ quantity }),
+    });
+};
+
+export const removeFromCartApi = async (productId: string) => {
+    return apiRequest(`/cart/items/${productId}`, {
+        method: "DELETE",
+    });
+};
+
+export const clearCartApi = async () => {
+    return apiRequest("/cart", {
+        method: "DELETE",
+    });
+};
