@@ -1,4 +1,4 @@
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, Types } from 'mongoose';
 import { BaseRepository } from './base.repository';
 import { ProductModel, ProductDocument } from '../models';
 
@@ -20,12 +20,16 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
     super(ProductModel);
   }
 
+  async findById(id: string | Types.ObjectId): Promise<ProductDocument | null> {
+    return this.model.findById(id).populate('category subcategory');
+  }
+
   async findBySlug(slug: string): Promise<ProductDocument | null> {
     return this.model.findOne({ slug, isActive: true }).populate('category subcategory');
   }
 
   async findBySku(sku: string): Promise<ProductDocument | null> {
-    return this.model.findOne({ sku: sku.toUpperCase() });
+    return this.model.findOne({ sku: sku.toUpperCase() }).populate('category subcategory');
   }
 
   async findWithFilters(
@@ -86,6 +90,7 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
       this.model
         .find(query)
         .populate('category', 'name slug')
+        .populate('subcategory', 'name slug')
         .sort(sortOption)
         .skip(skip)
         .limit(limit),
@@ -100,7 +105,7 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
       productId,
       { $inc: { stock: quantity } },
       { new: true }
-    );
+    ).populate('category subcategory');
   }
 
   async updateRating(productId: string, rating: number, reviewCount: number): Promise<ProductDocument | null> {
@@ -108,13 +113,14 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
       productId,
       { rating, reviewCount },
       { new: true }
-    );
+    ).populate('category subcategory');
   }
 
   async getFeaturedProducts(limit: number = 10): Promise<ProductDocument[]> {
     return this.model
       .find({ featured: true, isActive: true, inStock: true })
       .populate('category', 'name slug')
+      .populate('subcategory', 'name slug')
       .limit(limit)
       .sort({ createdAt: -1 });
   }
@@ -123,6 +129,7 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
     return this.model
       .find({ isNewProduct: true, isActive: true, inStock: true })
       .populate('category', 'name slug')
+      .populate('subcategory', 'name slug')
       .limit(limit)
       .sort({ createdAt: -1 });
   }
@@ -133,6 +140,8 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
         $expr: { $lte: ['$stock', threshold || '$lowStockThreshold'] },
         isActive: true,
       })
+      .populate('category', 'name slug')
+      .populate('subcategory', 'name slug')
       .sort({ stock: 1 });
   }
 }
