@@ -1,4 +1,4 @@
-z3export { User } from './User.model';
+export { User } from './User.model';
 export { Address } from './Address.model';
 export { Category } from './Category.model';
 export { ProductDocument, ProductModel } from './Product.model';

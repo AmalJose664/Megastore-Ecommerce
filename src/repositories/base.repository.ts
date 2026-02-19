@@ -60,4 +60,9 @@ export class BaseRepository<T extends Document> {
       createdAt: { $gte: startDate, $lte: endDate },
     });
   }
+
+  async exists(filter: FilterQuery<T>): Promise<boolean> {
+    const count = await this.model.countDocuments(filter).limit(1);
+    return count > 0;
+  }
 }
