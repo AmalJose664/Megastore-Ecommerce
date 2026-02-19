@@ -9,5 +9,6 @@ export * from './testimonial.repository';
 export * from './banner.repository';
 export * from './hero.repository';
 export * from './promo.repository';
+export { ActivityRepository, activityRepository } from './activity.repository';
 export * from './address.repository';
 export * from './coupon.repository';

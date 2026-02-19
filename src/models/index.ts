@@ -1,4 +1,4 @@
-export { User } from './User.model';
+z3export { User } from './User.model';
 export { Address } from './Address.model';
 export { Category } from './Category.model';
 export { ProductDocument, ProductModel } from './Product.model';
@@ -13,3 +13,4 @@ export { Banner } from './Banner.model';
 export { Hero } from './Hero.model';
 export { Promo } from './Promo.model';
 export { InventoryLog } from './InventoryLog.model';
+export { Activity } from './Activity.model';

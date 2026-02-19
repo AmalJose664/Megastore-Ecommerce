@@ -3,6 +3,7 @@ import { ApiError } from '../utils/ApiError';
 import { generateTokens, verifyRefreshToken } from '../utils/jwt';
 import { AuthResponse, AuthTokens } from '../types';
 import crypto from 'crypto';
+import { activityService } from './activity.service';
 
 export class AuthService {
   async register(data: {
@@ -25,6 +26,9 @@ export class AuthService {
 
     const tokens = generateTokens(user._id, user.role);
     await userRepository.updateRefreshToken(user._id.toString(), tokens.refreshToken);
+
+    // Log activity
+    await activityService.logUserRegistered(user);
 
     return {
       user: user.toJSON() as any,

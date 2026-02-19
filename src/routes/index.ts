@@ -10,6 +10,7 @@ import heroRoutes from './hero.routes';
 import promoRoutes from './promo.routes';
 import addressRoutes from './address.routes';
 import couponRoutes from './coupon.routes';
+import activityRoutes from './activity.routes';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/hero', heroRoutes);
 router.use('/promo', promoRoutes);
 router.use('/addresses', addressRoutes);
 router.use('/coupons', couponRoutes);
+router.use('/activities', activityRoutes);
 
 export default router;

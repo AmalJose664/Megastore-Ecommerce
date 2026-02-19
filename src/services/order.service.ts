@@ -4,6 +4,7 @@ import { IOrder, OrderStatus, PaymentMethod, IOrderItem, PaymentStatus } from '.
 import { PaginatedResponse } from '../types';
 import { buildPaginatedResponse } from '../utils/pagination';
 import { couponService } from './coupon.service';
+import { activityService } from './activity.service';
 
 export class OrderService {
   async createOrder(
@@ -109,6 +110,9 @@ export class OrderService {
     // 9. Clear cart
     await cartRepository.clearCart(userId);
 
+    // 10. Log activity
+    await activityService.logOrderCreated(order, userId, address.fullName);
+
     return order;
   }
 
@@ -161,6 +165,13 @@ export class OrderService {
 
     if (!order) {
       throw ApiError.notFound('Order not found');
+    }
+
+    // Log activity for status changes
+    if (status === OrderStatus.SHIPPED) {
+      await activityService.logOrderShipped(order, order.shippingAddress.fullName);
+    } else if (status === OrderStatus.DELIVERED) {
+      await activityService.logOrderDelivered(order, order.shippingAddress.fullName);
     }
 
     return order;

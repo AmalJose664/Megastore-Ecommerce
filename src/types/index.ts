@@ -36,6 +36,14 @@ export enum DiscountType {
   FIXED = 'fixed',
 }
 
+export enum ActivityType {
+  ORDER_CREATED = 'order_created',
+  ORDER_SHIPPED = 'order_shipped',
+  ORDER_DELIVERED = 'order_delivered',
+  PRODUCT_UPDATED = 'product_updated',
+  USER_REGISTERED = 'user_registered',
+}
+
 // User Types
 export interface IUser extends Document {
   _id: Types.ObjectId;
@@ -335,6 +343,27 @@ export interface IInventoryLog extends Document {
   reference?: string;
   performedBy: Types.ObjectId;
   createdAt: Date;
+}
+
+// Activity Types
+export interface IActivity extends Document {
+  _id: Types.ObjectId;
+  type: ActivityType;
+  title: string;
+  description: string;
+  user?: Types.ObjectId;
+  metadata?: {
+    orderId?: string;
+    productId?: string;
+    orderNumber?: string;
+    productName?: string;
+    oldPrice?: number;
+    newPrice?: number;
+    userName?: string;
+    [key: string]: any;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Request/Response Types

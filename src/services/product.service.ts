@@ -3,6 +3,7 @@ import { ApiError } from '../utils/ApiError';
 import { ProductDocument } from '../models';
 import { PaginatedResponse } from '../types';
 import { buildPaginatedResponse } from '../utils/pagination';
+import { activityService } from './activity.service';
 
 export class ProductService {
   async createProduct(data: Partial<ProductDocument>): Promise<ProductDocument> {
@@ -68,9 +69,16 @@ export class ProductService {
       }
     }
 
+    const oldProduct = await productRepository.findById(id);
     const product = await productRepository.updateById(id, data);
+
     if (!product) {
       throw ApiError.notFound('Product not found');
+    }
+
+    // Log Activity if price changed
+    if (data.price !== undefined && oldProduct && oldProduct.price !== data.price) {
+      await activityService.logProductUpdated(product, oldProduct.price, data.price);
     }
 
     return product;
