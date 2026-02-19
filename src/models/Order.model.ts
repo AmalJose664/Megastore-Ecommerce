@@ -160,9 +160,6 @@ orderSchema.pre('validate', async function (next) {
 });
 
 // Indexes
-orderSchema.index({ orderNumber: 1 });
 orderSchema.index({ user: 1, createdAt: -1 });
-orderSchema.index({ status: 1 });
-orderSchema.index({ paymentStatus: 1 });
 
 export const Order = mongoose.model<IOrder>('Order', orderSchema);

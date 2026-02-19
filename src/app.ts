@@ -63,6 +63,11 @@ if (config.nodeEnv === 'development') {
   app.use(morgan('combined'));
 }
 
+// Welcome route
+app.get('/', (_, res) => {
+  res.send('Welcome to the E-commerce API! Use /api for endpoints.');
+});
+
 // Health check
 app.get('/health', (_, res) => {
   res.json({
