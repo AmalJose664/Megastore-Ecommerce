@@ -80,10 +80,10 @@ export default function ProductsPage() {
     {
       key: 'product',
       header: 'Product',
-      render: (item: { id: string } & ApiProduct) => (
+      render: (item: ApiProduct) => (
         <div className="flex items-center gap-3">
           <img
-            src={item.images[0]}
+            src={item.images?.[0] || 'https://via.placeholder.com/150'}
             alt={item.name}
             className="w-12 h-12 rounded-lg object-cover"
           />
@@ -97,26 +97,26 @@ export default function ProductsPage() {
     {
       key: 'category',
       header: 'Category',
-      render: (item: { id: string } & ApiProduct) => (
+      render: (item: ApiProduct) => (
         <span className="text-sm">
-          {typeof item.category === 'object' ? (item.category as any).name : 'No Category'}
+          {item.category && typeof item.category === 'object' ? (item.category as any).name : 'No Category'}
         </span>
       ),
     },
     {
       key: 'price',
       header: 'Price',
-      render: (item: { id: string } & ApiProduct) => (
+      render: (item: ApiProduct) => (
         <div>
           {item.originalPrice && item.originalPrice > item.price ? (
             <>
-              <p className="font-medium">${item.price.toFixed(2)}</p>
+              <p className="font-medium">₹{item.price.toFixed(2)}</p>
               <p className="text-sm text-muted-foreground line-through">
-                ${item.originalPrice.toFixed(2)}
+                ₹{item.originalPrice.toFixed(2)}
               </p>
             </>
           ) : (
-            <p className="font-medium">${item.price.toFixed(2)}</p>
+            <p className="font-medium">₹{item.price.toFixed(2)}</p>
           )}
         </div>
       ),
@@ -124,7 +124,7 @@ export default function ProductsPage() {
     {
       key: 'stock',
       header: 'Stock',
-      render: (item: { id: string } & ApiProduct) => (
+      render: (item: ApiProduct) => (
         <span className={item.stock === 0 ? 'text-destructive font-medium' : item.stock <= (item.lowStockThreshold || 10) ? 'text-warning font-medium' : ''}>
           {item.stock} units
         </span>
@@ -133,7 +133,7 @@ export default function ProductsPage() {
     {
       key: 'status',
       header: 'Status',
-      render: (item: { id: string } & ApiProduct) => (
+      render: (item: ApiProduct) => (
         <StatusBadge
           status={item.isActive ? 'active' : 'archived'}
         />
@@ -143,7 +143,7 @@ export default function ProductsPage() {
       key: 'actions',
       header: '',
       className: 'text-right',
-      render: (item: { id: string } & ApiProduct) => (
+      render: (item: ApiProduct) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -187,9 +187,9 @@ export default function ProductsPage() {
         </div>
       ) : (
         <DataTable
-          data={products.map(product => ({ ...product, id: product._id }))}
+          data={products}
           columns={columns}
-          searchKey="_id"
+          searchKey="name"
           searchPlaceholder="Search products..."
           emptyMessage="No products found"
         />

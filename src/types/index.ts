@@ -236,7 +236,8 @@ export interface ProductSpecifications {
 }
 
 export interface ApiProduct {
-  _id: string;
+  _id?: string;
+  id?: string;
   name: string;
   slug: string;
   description: string;
