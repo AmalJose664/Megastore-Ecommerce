@@ -212,7 +212,7 @@ export default function ProductFormPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 w-full">
       <PageHeader
         title={isEditing ? 'Edit Product' : 'Add Product'}
         description={isEditing ? 'Update product information' : 'Create a new product listing'}
