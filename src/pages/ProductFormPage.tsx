@@ -76,18 +76,18 @@ export default function ProductFormPage() {
       const product = await productsService.getProductById(productId);
       if (product) {
         setFormData({
-          name: product.name,
-          description: product.description,
-          price: product.price.toString(),
+          name: product.name || '',
+          description: product.description || '',
+          price: (product.price || 0).toString(),
           originalPrice: product.originalPrice?.toString() || '',
-          stock: product.stock.toString(),
-          category: typeof product.category === 'string' ? product.category : (product.category as any)._id,
+          stock: (product.stock || 0).toString(),
+          category: typeof product.category === 'string' ? product.category : (product.category as any)?._id || '',
           subcategory: product.subcategory || '',
-          sku: product.sku,
-          isActive: product.isActive,
-          images: product.images,
-          featured: product.featured || false,
-          isNewProduct: product.isNewProduct || false,
+          sku: product.sku || '',
+          isActive: product.isActive ?? true,
+          images: product.images || [],
+          featured: product.featured ?? false,
+          isNewProduct: product.isNewProduct ?? false,
           tags: product.tags || [],
         });
       } else {
@@ -272,7 +272,7 @@ export default function ProductFormPage() {
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
               <Select
-                value={formData.category}
+                value={formData.category || ""}
                 onValueChange={value => setFormData(prev => ({ ...prev, category: value, subcategory: '' }))}
               >
                 <SelectTrigger className={errors.category ? 'border-destructive' : ''}>
@@ -292,7 +292,7 @@ export default function ProductFormPage() {
             <div className="space-y-2">
               <Label htmlFor="subcategory">Subcategory</Label>
               <Select
-                value={formData.subcategory}
+                value={formData.subcategory || "none"}
                 onValueChange={value => setFormData(prev => ({ ...prev, subcategory: value }))}
                 disabled={!formData.category}
               >
