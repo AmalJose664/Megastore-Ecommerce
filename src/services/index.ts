@@ -11,3 +11,4 @@ export * from './promo.service';
 export * from './address.service';
 export * from './coupon.service';
 export * from './activity.service';
+export * from './dashboard.service';

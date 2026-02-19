@@ -401,3 +401,25 @@ export interface AuthResponse {
   user: Partial<IUser>;
   tokens: AuthTokens;
 }
+
+// Dashboard Types
+export interface IDashboardStats {
+  totalRevenue: number;
+  revenueChange: number;
+  totalOrders: number;
+  ordersChange: number;
+  totalProducts: number;
+  productsChange: number;
+  totalUsers: number;
+  usersChange: number;
+}
+
+export interface AdminDashboardData {
+  stats: IDashboardStats;
+  recentOrders: IOrder[];
+  lowStockProducts: any[];
+  activityLog: IActivity[];
+  charts: {
+    salesOverTime: { date: string; revenue: number }[];
+  };
+}

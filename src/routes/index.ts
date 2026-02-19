@@ -11,6 +11,7 @@ import promoRoutes from './promo.routes';
 import addressRoutes from './address.routes';
 import couponRoutes from './coupon.routes';
 import activityRoutes from './activity.routes';
+import dashboardRoutes from './dashboard.routes';
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.use('/promo', promoRoutes);
 router.use('/addresses', addressRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/activities', activityRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 export default router;

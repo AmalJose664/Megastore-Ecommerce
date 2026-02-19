@@ -11,3 +11,4 @@ export * from './promo.controller';
 export * from './address.controller';
 export * from './coupon.controller';
 export * from './activity.controller';
+export * from './dashboard.controller';

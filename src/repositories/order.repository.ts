@@ -58,12 +58,48 @@ export class OrderRepository extends BaseRepository<IOrder> {
     ]);
   }
 
-  async getRecentOrders(limit: number = 10): Promise<IOrder[]> {
-    return this.model
-      .find()
-      .populate('user', 'firstName lastName email')
-      .sort({ createdAt: -1 })
-      .limit(limit);
+  async getMonthlyRevenue(startDate: Date, endDate: Date): Promise<number> {
+    const result = await this.model.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate },
+          status: { $ne: OrderStatus.CANCELLED },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$total' },
+        },
+      },
+    ]);
+    return result[0]?.total || 0;
+  }
+
+  async getDailySales(days: number = 7): Promise<{ date: string; revenue: number }[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const result = await this.model.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate },
+          status: { $ne: OrderStatus.CANCELLED },
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          revenue: { $sum: '$total' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    return result.map(item => ({
+      date: item._id,
+      revenue: item.revenue,
+    }));
   }
 }
 
