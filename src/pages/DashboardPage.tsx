@@ -6,6 +6,7 @@ import StatCard from '@/components/dashboard/StatCard';
 import RecentOrdersTable from '@/components/dashboard/RecentOrdersTable';
 import LowStockAlert from '@/components/dashboard/LowStockAlert';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
+import SalesChart from '@/components/dashboard/SalesChart';
 import PageHeader from '@/components/ui/PageHeader';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -39,7 +40,7 @@ export default function DashboardPage() {
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="lg:col-span-2 h-[400px] rounded-xl" />
+          <Skeleton className="lg:col-span-2 h-[450px] rounded-xl" />
           <div className="space-y-6">
             <Skeleton className="h-[200px] rounded-xl" />
             <Skeleton className="h-[200px] rounded-xl" />
@@ -52,12 +53,20 @@ export default function DashboardPage() {
   if (!dashboardData) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Failed to load dashboard data. Please try again later.</p>
+        <div className="text-center space-y-4">
+          <p className="text-muted-foreground text-lg">Failed to load dashboard data.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+          >
+            Retry Connection
+          </button>
+        </div>
       </div>
     );
   }
 
-  const { stats, recentOrders, lowStockProducts, activityLog } = dashboardData;
+  const { stats, recentOrders, lowStockProducts, activityLog, charts } = dashboardData;
 
   return (
     <div className="space-y-6">
@@ -94,10 +103,11 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Main Content Grid */}
+      {/* Charts & Table Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Orders - 2 columns */}
-        <div className="lg:col-span-2">
+        {/* Left Column - Chart & Table */}
+        <div className="lg:col-span-2 space-y-6">
+          <SalesChart data={charts.salesOverTime} />
           <RecentOrdersTable orders={recentOrders} />
         </div>
 
