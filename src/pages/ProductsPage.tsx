@@ -151,7 +151,7 @@ export default function ProductsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => navigate(`/products/${item._id}/edit`)}>
+            <DropdownMenuItem onClick={() => navigate(`/products/${item._id || item.id}/edit`)}>
               <Edit className="w-4 h-4 mr-2" />
               Edit
             </DropdownMenuItem>

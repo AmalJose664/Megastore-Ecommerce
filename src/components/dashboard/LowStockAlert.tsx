@@ -51,7 +51,7 @@ export default function LowStockAlert({ products }: LowStockAlertProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate(`/products/edit/${product._id || product.id}`)}
+              onClick={() => navigate(`/products/${product._id || product.id}/edit`)}
             >
               Restock
             </Button>

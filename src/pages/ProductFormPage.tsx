@@ -47,7 +47,7 @@ export default function ProductFormPage() {
 
   useEffect(() => {
     loadCategories();
-    if (isEditing && id) {
+    if (isEditing && id && id !== 'undefined') {
       loadProduct(id);
     }
   }, [id, isEditing]);
