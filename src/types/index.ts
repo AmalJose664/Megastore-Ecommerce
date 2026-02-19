@@ -183,6 +183,40 @@ export interface ApiResponse<T = any> {
   data?: T;
 }
 
+export interface DashboardStats {
+  totalRevenue: number;
+  revenueChange: number;
+  totalOrders: number;
+  ordersChange: number;
+  totalProducts: number;
+  productsChange: number;
+  totalUsers: number;
+  usersChange: number;
+}
+
+export interface ActivityLog {
+  _id: string;
+  type: 'order' | 'product' | 'user' | 'system';
+  action: string;
+  description: string;
+  timestamp: string;
+}
+
+export interface ChartData {
+  date: string;
+  revenue: number;
+}
+
+export interface DashboardData {
+  stats: DashboardStats;
+  recentOrders: Order[];
+  lowStockProducts: Product[];
+  activityLog: ActivityLog[];
+  charts: {
+    salesOverTime: ChartData[];
+  };
+}
+
 // Product related types
 export interface ProductCategory {
   _id: string;

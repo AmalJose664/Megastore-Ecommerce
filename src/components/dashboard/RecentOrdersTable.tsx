@@ -69,13 +69,17 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                 <td className="p-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
-                        {order.customer.name.charAt(0)}
+                      <AvatarFallback className="bg-secondary text-secondary-foreground text-xs font-bold">
+                        {order.shippingAddress?.fullName?.charAt(0) || order.customer?.name?.charAt(0) || '?'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-sm">{order.customer.name}</p>
-                      <p className="text-xs text-muted-foreground">{order.customer.email}</p>
+                      <p className="font-medium text-sm">
+                        {order.shippingAddress?.fullName || order.customer?.name || 'Guest'}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate max-w-[150px]">
+                        {order.customer?.email || order.shippingAddress?.city || 'No email provided'}
+                      </p>
                     </div>
                   </div>
                 </td>
@@ -90,7 +94,7 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                   </span>
                 </td>
                 <td className="p-4 text-right font-medium">
-                  ${order.total.toFixed(2)}
+                  ₹{order.total.toLocaleString()}
                 </td>
                 <td className="p-4 text-right">
                   <Button

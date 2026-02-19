@@ -5,15 +5,14 @@ import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 
-interface LowStockAlertProps {
+export interface LowStockAlertProps {
   products: Product[];
 }
 
 export default function LowStockAlert({ products }: LowStockAlertProps) {
   const navigate = useNavigate();
-  const lowStockProducts = products.filter(p => p.stock <= 10);
 
-  if (lowStockProducts.length === 0) {
+  if (!products || products.length === 0) {
     return null;
   }
 
@@ -27,21 +26,21 @@ export default function LowStockAlert({ products }: LowStockAlertProps) {
         <p className="text-sm text-muted-foreground mt-1">Products running low on inventory</p>
       </div>
       <div className="p-4 space-y-4">
-        {lowStockProducts.map((product) => (
-          <div 
-            key={product.id} 
+        {products.map((product) => (
+          <div
+            key={product._id || product.id}
             className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
           >
-            <img 
-              src={product.images[0]} 
-              alt={product.name} 
+            <img
+              src={product.images?.[0] || 'https://via.placeholder.com/150'}
+              alt={product.name}
               className="w-12 h-12 rounded-lg object-cover"
             />
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm truncate">{product.name}</p>
               <div className="flex items-center gap-2 mt-1">
-                <Progress 
-                  value={product.stock * 10} 
+                <Progress
+                  value={Math.min((product.stock / 10) * 100, 100)}
                   className="h-1.5 flex-1"
                 />
                 <span className={`text-xs font-medium ${product.stock === 0 ? 'text-destructive' : 'text-warning'}`}>
@@ -49,10 +48,10 @@ export default function LowStockAlert({ products }: LowStockAlertProps) {
                 </span>
               </div>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
-              onClick={() => navigate(`/products/${product.id}/edit`)}
+              onClick={() => navigate(`/products/edit/${product._id || product.id}`)}
             >
               Restock
             </Button>
