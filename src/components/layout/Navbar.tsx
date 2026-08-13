@@ -5,6 +5,7 @@ import { ShoppingBag, Search, User, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useSiteSettings } from "@/context/SettingsContext";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -19,6 +20,7 @@ export function Navbar() {
   const location = useLocation();
   const { totalItems, toggleCart } = useCart();
   const { user } = useAuth();
+  const { settings } = useSiteSettings();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -37,9 +39,13 @@ export function Navbar() {
         {/* Logo */}
         <Link
           to="/"
-          className="font-display text-xl font-semibold tracking-tight lg:text-2xl"
+          className="font-display text-xl font-semibold tracking-tight lg:text-2xl flex items-center gap-2"
         >
-          e-commerce
+          {settings.logoUrl ? (
+            <img src={settings.logoUrl} alt={settings.siteName} className="h-8 max-w-[140px] object-contain" />
+          ) : (
+            settings.siteName || "MegaStore"
+          )}
         </Link>
 
         {/* Desktop Navigation */}

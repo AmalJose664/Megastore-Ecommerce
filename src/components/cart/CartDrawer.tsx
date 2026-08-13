@@ -83,7 +83,7 @@ export function CartDrawer() {
                               {item.product.name}
                             </h4>
                             <p className="mt-1 text-sm text-muted-foreground">
-                              ${item.product.price.toFixed(2)}
+                              ₹{item.product.price.toFixed(2)}
                             </p>
                           </div>
                           <Button
@@ -122,7 +122,7 @@ export function CartDrawer() {
                             <Plus className="h-3 w-3" />
                           </Button>
                           <span className="ml-auto font-semibold">
-                            ${(item.product.price * item.quantity).toFixed(2)}
+                            ₹{(item.product.price * item.quantity).toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -137,7 +137,7 @@ export function CartDrawer() {
               <div className="border-t border-border p-6">
                 <div className="flex items-center justify-between text-lg font-semibold">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>₹{subtotal.toFixed(2)}</span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Shipping and taxes calculated at checkout.

@@ -60,8 +60,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         try {
             const response = await refreshTokenApi(refreshToken);
-            if (response.success) {
-                setTokens(response.data.accessToken, response.data.refreshToken);
+            const tokenData = response?.data?.tokens || response?.data;
+            if (response && response.success && tokenData?.accessToken) {
+                setTokens(tokenData.accessToken, tokenData.refreshToken || refreshToken);
                 await loadProfile();
             } else {
                 clearTokens();

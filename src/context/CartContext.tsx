@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode, useRef } from "react";
 import { Product } from "@/data/products";
 import { useAuth } from "./AuthContext";
-import { fetchCart, addToCartApi, updateCartItemApi, removeFromCartApi, clearCartApi } from "@/lib/api";
+import { fetchCart, addToCartApi, updateCartItemApi, removeFromCartApi, clearCartApi, mergeCartApi } from "@/lib/api";
 import { toast } from "sonner";
 
 export interface CartItem {
@@ -102,17 +102,40 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const isInitialMount = useRef(true);
   const isSyncing = useRef(false);
 
-  // Sync with Backend when Logged In
+  // Sync with Backend when Logged In (including merging guest cart from localStorage)
   useEffect(() => {
     if (isAuthenticated && user) {
-      const syncCart = async () => {
+      const syncCartWithBackend = async () => {
         try {
-          const res = await fetchCart();
-          if (res.success && res.data) {
-            // Map backend items to frontend structure
+          const savedGuestCart = localStorage.getItem(CART_STORAGE_KEY);
+          let guestItems: any[] = [];
+          if (savedGuestCart) {
+            try {
+              guestItems = JSON.parse(savedGuestCart);
+            } catch {
+              guestItems = [];
+            }
+          }
+
+          let res;
+          if (Array.isArray(guestItems) && guestItems.length > 0) {
+            // Merge guest items into user cart on backend
+            const itemsToMerge = guestItems.map((item: any) => ({
+              productId: item.product.id || item.product._id,
+              quantity: item.quantity,
+            }));
+            res = await mergeCartApi(itemsToMerge);
+            // Clear guest cart from localStorage after successful merge
+            localStorage.removeItem(CART_STORAGE_KEY);
+          } else {
+            // No guest cart to merge, just fetch user cart
+            res = await fetchCart();
+          }
+
+          if (res && res.success && res.data) {
             const backendItems = res.data.items.map((item: any) => ({
               product: item.product,
-              quantity: item.quantity
+              quantity: item.quantity,
             }));
             dispatch({ type: "LOAD_CART", items: backendItems });
           }
@@ -120,7 +143,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           console.error("Failed to sync cart with backend:", error);
         }
       };
-      syncCart();
+      syncCartWithBackend();
     } else if (!isAuthenticated && isInitialMount.current) {
       // Guest: Load from localStorage only on first mount
       try {

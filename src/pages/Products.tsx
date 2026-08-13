@@ -20,10 +20,10 @@ const sortOptions = [
 
 const priceRanges = [
   { value: "all", label: "All Prices" },
-  { value: "0-50", label: "Under $50" },
-  { value: "50-100", label: "$50 - $100" },
-  { value: "100-200", label: "$100 - $200" },
-  { value: "200+", label: "$200+" },
+  { value: "0-500", label: "Under ₹500" },
+  { value: "500-1000", label: "₹500 - ₹1,000" },
+  { value: "1000-2000", label: "₹1,000 - ₹2,000" },
+  { value: "2000+", label: "₹2,000+" },
 ];
 
 const Products = () => {

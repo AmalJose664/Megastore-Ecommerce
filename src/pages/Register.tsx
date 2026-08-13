@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,8 @@ const Register = () => {
     const [loading, setLoading] = useState(false);
     const { register } = useAuth();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const redirect = searchParams.get("redirect");
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -28,7 +30,7 @@ const Register = () => {
         setLoading(true);
         try {
             await register(formData);
-            navigate("/");
+            navigate(redirect || "/");
         } catch (error) {
             // Error handled in AuthContext
         } finally {
@@ -126,7 +128,7 @@ const Register = () => {
                 <CardFooter className="flex flex-col space-y-4 pt-4 border-t border-border/50 mt-6">
                     <div className="text-sm text-center text-muted-foreground">
                         Already a member?{" "}
-                        <Link to="/login" className="text-primary hover:text-accent font-bold transition-colors underline underline-offset-4">
+                        <Link to={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login"} className="text-primary hover:text-accent font-bold transition-colors underline underline-offset-4">
                             Sign In
                         </Link>
                     </div>

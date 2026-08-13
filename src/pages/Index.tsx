@@ -6,6 +6,7 @@ import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { CategoriesGrid } from "@/components/home/CategoriesGrid";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { Testimonials } from "@/components/home/Testimonials";
+import { BannerSections } from "@/components/home/BannerSections";
 
 const Index = () => {
   return (
@@ -14,6 +15,7 @@ const Index = () => {
       <CartDrawer />
       <main>
         <HeroSection />
+        <BannerSections />
         <FeaturedProducts />
         <CategoriesGrid />
         <PromoBanner />

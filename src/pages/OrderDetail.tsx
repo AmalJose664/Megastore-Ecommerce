@@ -146,8 +146,8 @@ const OrderDetail = () => {
                                                 </p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="font-bold text-primary">${(item.price * item.quantity).toFixed(2)}</p>
-                                                <p className="text-[10px] text-muted-foreground font-medium">${item.price.toFixed(2)} / unit</p>
+                                                <p className="font-bold text-primary">₹{(item.price * item.quantity).toFixed(2)}</p>
+                                                <p className="text-[10px] text-muted-foreground font-medium">₹{item.price.toFixed(2)} / unit</p>
                                             </div>
                                         </div>
                                     ))}
@@ -155,15 +155,15 @@ const OrderDetail = () => {
                                 <div className="p-8 bg-secondary/20 space-y-4">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground font-medium">Subtotal</span>
-                                        <span className="text-foreground font-bold">${order.subtotal.toFixed(2)}</span>
+                                        <span className="text-foreground font-bold">₹{order.subtotal.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground font-medium">Shipping Charge</span>
-                                        <span className="text-foreground font-bold">{order.shippingFee === 0 ? "FREE" : `$${order.shippingFee.toFixed(2)}`}</span>
+                                        <span className="text-foreground font-bold">{order.shippingFee === 0 ? "FREE" : `₹${order.shippingFee.toFixed(2)}`}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground font-medium">Tax & GST</span>
-                                        <span className="text-foreground font-bold">${order.tax.toFixed(2)}</span>
+                                        <span className="text-foreground font-bold">₹{order.tax.toFixed(2)}</span>
                                     </div>
                                     {order.discount > 0 && (
                                         <div className="flex justify-between text-sm text-emerald-600">
@@ -171,13 +171,13 @@ const OrderDetail = () => {
                                                 <Tag className="h-3 w-3" />
                                                 Discount Applied
                                             </span>
-                                            <span className="font-bold">-${order.discount.toFixed(2)}</span>
+                                            <span className="font-bold">-₹{order.discount.toFixed(2)}</span>
                                         </div>
                                     )}
                                     <div className="pt-4 mt-2 border-t border-border/60 flex justify-between items-end">
                                         <div>
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Final Paid Amount</p>
-                                            <p className="text-3xl font-display font-bold text-primary">${order.total.toFixed(2)}</p>
+                                            <p className="text-3xl font-display font-bold text-primary">₹{order.total.toFixed(2)}</p>
                                         </div>
                                         <div className="text-right">
                                             <Badge className="bg-emerald-500/10 text-emerald-600 border-none rounded-full px-3 text-[10px] uppercase font-bold tracking-tight">

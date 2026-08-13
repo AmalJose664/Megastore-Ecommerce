@@ -304,7 +304,7 @@ const OrdersList = ({ orders, loading, pagination, onPageChange }) => {
                             </div>
                             <div className="text-right">
                                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Amount</p>
-                                <p className="text-sm font-bold text-primary">${order.total.toFixed(2)}</p>
+                                <p className="text-sm font-bold text-primary">₹{order.total.toFixed(2)}</p>
                             </div>
                             <Badge variant="outline" className={`capitalize rounded-full px-3 py-1 border-none shadow-sm font-bold tracking-tight text-[10px] ${order.status === "delivered" ? "bg-emerald-500/10 text-emerald-600" :
                                 order.status === "cancelled" ? "bg-destructive/10 text-destructive" :

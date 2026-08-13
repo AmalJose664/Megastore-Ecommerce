@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,13 +13,15 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const redirect = searchParams.get("redirect");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
             await login({ email, password });
-            navigate("/");
+            navigate(redirect || "/");
         } catch (error) {
             // Error handled in AuthContext
         } finally {
@@ -87,7 +89,7 @@ const Login = () => {
                 <CardFooter className="flex flex-col space-y-4 pt-4 border-t border-border/50 mt-6">
                     <div className="text-sm text-center text-muted-foreground">
                         New to our collection?{" "}
-                        <Link to="/register" className="text-primary hover:text-accent font-bold transition-colors underline underline-offset-4">
+                        <Link to={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : "/register"} className="text-primary hover:text-accent font-bold transition-colors underline underline-offset-4">
                             Create an account
                         </Link>
                     </div>

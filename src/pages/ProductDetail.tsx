@@ -161,14 +161,14 @@ const ProductDetail = () => {
 
               {/* Thumbnails */}
               {product.images.length > 1 && (
-                <div className="mt-4 flex gap-3">
+                <div className="flex gap-4">
                   {product.images.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImage(index)}
                       className={`relative aspect-square w-20 overflow-hidden rounded-lg transition-all ${selectedImage === index
-                        ? "ring-2 ring-primary ring-offset-2"
-                        : "opacity-60 hover:opacity-100"
+                          ? "ring-2 ring-primary ring-offset-2"
+                          : "opacity-70 hover:opacity-100"
                         }`}
                     >
                       <img
@@ -183,60 +183,41 @@ const ProductDetail = () => {
             </motion.div>
 
             {/* Product Info */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              {/* Badges */}
-              <div className="flex items-center gap-2">
-                {product.isNew && (
-                  <span className="rounded-full bg-foreground px-3 py-1 text-xs font-medium text-background">
-                    New Arrival
-                  </span>
-                )}
-                {product.originalPrice && (
-                  <span className="rounded-full bg-destructive px-3 py-1 text-xs font-medium text-destructive-foreground">
-                    {Math.round(
-                      ((product.originalPrice - product.price) /
-                        product.originalPrice) *
-                      100
-                    )}
-                    % OFF
-                  </span>
-                )}
-              </div>
-
-              <h1 className="mt-4 font-display text-3xl font-bold lg:text-4xl">
+            <div className="flex flex-col">
+              <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                {typeof product.category === "object" ? (product.category as any).name : product.category}
+              </p>
+              <h1 className="mt-2 font-display text-3xl font-bold lg:text-4xl">
                 {product.name}
               </h1>
 
               {/* Rating */}
-              <div className="mt-4 flex items-center gap-3">
+              <div className="mt-4 flex items-center gap-2">
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
+                  {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
                       className={`h-5 w-5 ${i < Math.floor(product.rating)
-                        ? "fill-primary text-primary"
-                        : "fill-muted text-muted"
+                          ? "fill-primary text-primary"
+                          : "text-muted"
                         }`}
                     />
                   ))}
                 </div>
-                <span className="font-medium">{product.rating}</span>
+                <span className="font-semibold">{product.rating}</span>
                 <span className="text-muted-foreground">
                   ({product.reviewCount} reviews)
                 </span>
               </div>
 
               {/* Price */}
-              <div className="mt-6 flex items-baseline gap-3">
+              <div className="mt-6 flex items-baseline gap-4">
                 <span className="font-display text-3xl font-bold">
-                  ${product.price.toFixed(2)}
+                  ₹{product.price.toFixed(2)}
                 </span>
                 {product.originalPrice && (
                   <span className="text-xl text-muted-foreground line-through">
-                    ${product.originalPrice.toFixed(2)}
+                    ₹{product.originalPrice.toFixed(2)}
                   </span>
                 )}
               </div>
@@ -321,7 +302,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
               )}
-            </motion.div>
+            </div>
           </div>
 
           {/* Related Products */}

@@ -1,20 +1,19 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  CreditCard, Shield, Check, ChevronLeft, Truck, Package, Plus, Star, Pencil, Trash2, Tag, Ticket, Loader2, Minus
+  CreditCard, Shield, Check, ChevronLeft, Truck, Package, Plus, Star, Pencil, Trash2, Tag, Ticket, Loader2, Minus, Banknote, X
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { apiRequest, validateCoupon, fetchCoupons, createOrder } from "@/lib/api";
+import { apiRequest, validateCoupon, fetchCoupons, createOrder, createStripeCheckoutSessionApi } from "@/lib/api";
 import { AddressList } from "@/components/profile/AddressList";
 import { AddressModal } from "@/components/profile/Address";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { X } from "lucide-react";
 
 /* ─── API helpers ─────────────────────────────────────────────── */
 const api = {
@@ -32,10 +31,18 @@ const EMPTY_FORM = {
 
 const Checkout = () => {
   const { items, subtotal, updateQuantity, removeItem, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState(1);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "cod">("stripe");
+
+  useEffect(() => {
+    if (searchParams.get("canceled") === "true") {
+      toast.error("Payment was canceled. You can try placing your order again anytime.");
+    }
+  }, [searchParams]);
 
   /* ─── Address State ─────────────────────────────────────────── */
   const [addresses, setAddresses] = useState([]);
@@ -60,7 +67,13 @@ const Checkout = () => {
   const [orderError, setOrderError] = useState("");
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!isAuthenticated || !user) {
+      toast.info("Please sign in to complete your purchase");
+      navigate("/login?redirect=/checkout");
+      return;
+    }
+
     api.getAll().then(res => {
       if (res.success) {
         setAddresses(res.data);
@@ -79,18 +92,49 @@ const Checkout = () => {
     }).catch(err => {
       console.error("Failed to fetch coupons:", err);
     }).finally(() => setAvailableLoading(false));
-  }, [user]);
+  }, [user, isAuthenticated, authLoading, navigate]);
 
   const openNew = () => { setEditTarget(null); setForm(EMPTY_FORM); setModalOpen(true); };
   const openEdit = (addr) => { setEditTarget(addr); setForm({ ...addr }); setModalOpen(true); };
   const closeModal = () => { setModalOpen(false); setEditTarget(null); };
 
   const handleSaveAddress = async () => {
+    if (!form.fullName.trim()) {
+      toast.error("Full Name is required");
+      return;
+    }
+    if (!form.phone.trim()) {
+      toast.error("Phone number is required");
+      return;
+    }
+    if (!form.addressLine1.trim()) {
+      toast.error("Address Line 1 is required");
+      return;
+    }
+    if (!form.city.trim()) {
+      toast.error("City is required");
+      return;
+    }
+    if (!form.state.trim()) {
+      toast.error("State is required");
+      return;
+    }
+    if (!form.postalCode.trim()) {
+      toast.error("Postal Code is required");
+      return;
+    }
+
     setSaving(true);
     try {
       if (editTarget) {
         const res = await api.update(editTarget._id, form);
-        if (res.success) setAddresses(prev => prev.map(a => a._id === editTarget._id ? res.data : a));
+        if (res.success) {
+          setAddresses(prev => prev.map(a => a._id === editTarget._id ? res.data : a));
+          toast.success("Address updated successfully");
+          closeModal();
+        } else {
+          toast.error(res.message || "Failed to update address");
+        }
       } else {
         const res = await api.create(form);
         if (res.success) {
@@ -99,10 +143,17 @@ const Checkout = () => {
             return [...list, res.data];
           });
           if (!selectedAddressId) setSelectedAddressId(res.data._id);
+          toast.success("Address added successfully");
+          closeModal();
+        } else {
+          toast.error(res.message || "Failed to add address");
         }
       }
-      closeModal();
-    } finally { setSaving(false); }
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred while saving address");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSetDefault = async (id) => {
@@ -184,13 +235,28 @@ const Checkout = () => {
       try {
         const res = await createOrder({
           addressId: selectedAddressId!,
-          paymentMethod: "cod", // Adjust based on your payment selection logic
+          paymentMethod: paymentMethod,
           couponCode: appliedCode || undefined,
         });
 
-        if (res.success) {
-          setOrderComplete(true);
+        if (res.success && res.data) {
+          const order = res.data;
           clearCart();
+
+          if (paymentMethod === "stripe") {
+            const orderId = order.id || order._id;
+            toast.loading("Redirecting to Stripe secure checkout...");
+            const stripeRes = await createStripeCheckoutSessionApi(orderId);
+
+            if (stripeRes.success && stripeRes.data?.checkoutUrl) {
+              window.location.href = stripeRes.data.checkoutUrl;
+              return;
+            } else {
+              setOrderError(stripeRes.message || "Failed to initialize Stripe payment session");
+            }
+          } else {
+            setOrderComplete(true);
+          }
         } else {
           setOrderError(res.message || "Failed to create order");
         }
@@ -345,7 +411,7 @@ const Checkout = () => {
                                 </button>
                               </div>
                               <p className="text-sm text-primary font-bold mt-1">
-                                ${item.product.price.toFixed(2)} / unit
+                                ₹{item.product.price.toFixed(2)} / unit
                               </p>
                             </div>
 
@@ -368,7 +434,7 @@ const Checkout = () => {
                                 </button>
                               </div>
                               <p className="font-display font-bold text-foreground">
-                                ${(item.product.price * item.quantity).toFixed(2)}
+                                ₹{(item.product.price * item.quantity).toFixed(2)}
                               </p>
                             </div>
                           </div>
@@ -457,25 +523,62 @@ const Checkout = () => {
                                 <span className="w-6 h-6 rounded bg-secondary flex items-center justify-center text-[10px] font-bold">{item.quantity}x</span>
                                 <span className="text-muted-foreground truncate max-w-[150px]">{item.product.name}</span>
                               </div>
-                              <span className="font-medium">${(item.product.price * item.quantity).toFixed(2)}</span>
+                              <span className="font-medium">₹{(item.product.price * item.quantity).toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      {/* Payment Summary */}
+                      {/* Payment Selection */}
                       <div className="p-5 rounded-2xl border border-border/50">
                         <h3 className="font-display font-bold text-foreground mb-4">Payment Method</h3>
-                        <div className="flex items-center gap-4 p-4 rounded-xl bg-secondary/30 border border-border/40">
-                          <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center border border-border/50">
-                            <CreditCard className="h-5 w-5 text-primary" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div
+                            onClick={() => setPaymentMethod("stripe")}
+                            className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
+                              paymentMethod === "stripe"
+                                ? "bg-primary/10 border-primary shadow-sm"
+                                : "bg-secondary/20 border-border/40 hover:border-border"
+                            }`}
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
+                              <CreditCard className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold">Stripe Card</p>
+                              <p className="text-xs text-muted-foreground">Credit / Debit Card</p>
+                            </div>
+                            <div className="ml-auto flex items-center justify-center">
+                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                                paymentMethod === "stripe" ? "border-primary bg-primary" : "border-muted-foreground/40"
+                              }`}>
+                                {paymentMethod === "stripe" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-bold">Secure Gateway</p>
-                            <p className="text-xs text-muted-foreground">Redirecting to payment portal</p>
-                          </div>
-                          <div className="ml-auto w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 rounded-full bg-white" />
+
+                          <div
+                            onClick={() => setPaymentMethod("cod")}
+                            className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
+                              paymentMethod === "cod"
+                                ? "bg-primary/10 border-primary shadow-sm"
+                                : "bg-secondary/20 border-border/40 hover:border-border"
+                            }`}
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                              <Banknote className="h-5 w-5 text-emerald-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold">Cash on Delivery</p>
+                              <p className="text-xs text-muted-foreground">Pay upon delivery</p>
+                            </div>
+                            <div className="ml-auto flex items-center justify-center">
+                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                                paymentMethod === "cod" ? "border-primary bg-primary" : "border-muted-foreground/40"
+                              }`}>
+                                {paymentMethod === "cod" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -524,7 +627,7 @@ const Checkout = () => {
                 <div className="mt-6 space-y-4 border-t border-border/40 pt-6">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Items ({items.length})</span>
-                    <span className="font-medium text-foreground">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium text-foreground">₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground flex items-center gap-1">
@@ -532,12 +635,12 @@ const Checkout = () => {
                       {shipping === 0 && <Badge className="bg-emerald-500/10 text-emerald-600 text-[8px] h-4">Free</Badge>}
                     </span>
                     <span className="font-medium text-foreground">
-                      {shipping === 0 ? "$0.00" : `$${shipping.toFixed(2)}`}
+                      {shipping === 0 ? "₹0.00" : `₹${shipping.toFixed(2)}`}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Estimated Tax (8%)</span>
-                    <span className="font-medium text-foreground">${tax.toFixed(2)}</span>
+                    <span className="font-medium text-foreground">₹{tax.toFixed(2)}</span>
                   </div>
 
                   {couponData && (
@@ -550,7 +653,7 @@ const Checkout = () => {
                         <Tag className="h-3 w-3" />
                         Discount Applied
                       </span>
-                      <span>-${discount.toFixed(2)}</span>
+                      <span>-₹{discount.toFixed(2)}</span>
                     </motion.div>
                   )}
 
@@ -558,10 +661,10 @@ const Checkout = () => {
                     <div className="flex justify-between items-end">
                       <div>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total Checkout Amount</p>
-                        <p className="text-2xl font-display font-bold text-foreground">${total.toFixed(2)}</p>
+                        <p className="text-2xl font-display font-bold text-foreground">₹{total.toFixed(2)}</p>
                       </div>
                       <div className="text-right">
-                        {discount > 0 && <p className="text-[10px] text-emerald-600 font-bold italic animate-pulse">You Saved ${discount.toFixed(2)}!</p>}
+                        {discount > 0 && <p className="text-[10px] text-emerald-600 font-bold italic animate-pulse">You Saved ₹{discount.toFixed(2)}!</p>}
                         <p className="text-[10px] text-muted-foreground italic">Inc. all taxes</p>
                       </div>
                     </div>
