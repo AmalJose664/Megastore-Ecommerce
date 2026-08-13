@@ -1,18 +1,10 @@
 import { cartRepository, productRepository } from '../repositories';
 import { ApiError } from '../utils/ApiError';
 import { ICart } from '../types';
-import { Types } from 'mongoose';
 
 export class CartService {
   async getCart(userId: string): Promise<ICart> {
-    let cart = await cartRepository.findByUser(userId);
-
-    if (!cart) {
-      const userObjectId = new Types.ObjectId(userId);
-      cart = await cartRepository.create({ user: userObjectId, items: [] });
-    }
-
-    return cart;
+    return cartRepository.getOrCreateCart(userId);
   }
 
   async addToCart(userId: string, productId: string, quantity: number = 1): Promise<ICart> {
@@ -31,6 +23,35 @@ export class CartService {
     }
 
     return cartRepository.addItem(userId, productId, quantity, product.price);
+  }
+
+  async mergeCart(
+    userId: string,
+    guestItems: Array<{ productId: string; quantity: number }>
+  ): Promise<ICart> {
+    if (!guestItems || guestItems.length === 0) {
+      return this.getCart(userId);
+    }
+
+    const itemsToMerge: Array<{ productId: string; quantity: number; price: number }> = [];
+
+    for (const item of guestItems) {
+      if (!item.productId || !item.quantity || item.quantity <= 0) continue;
+      const product = await productRepository.findById(item.productId);
+      if (product && product.inStock) {
+        itemsToMerge.push({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: product.price,
+        });
+      }
+    }
+
+    if (itemsToMerge.length === 0) {
+      return this.getCart(userId);
+    }
+
+    return cartRepository.mergeCartItems(userId, itemsToMerge);
   }
 
   async updateCartItem(userId: string, productId: string, quantity: number): Promise<ICart> {

@@ -5,7 +5,6 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 // Debug logging
 console.log('ENV FILE PATH:', path.join(__dirname, '../../.env'));
-console.log('MONGODB_URI from env:', process.env.MONGODB_URI);
 
 interface EnvConfig {
   nodeEnv: string;
@@ -48,6 +47,7 @@ interface EnvConfig {
     stripe: {
       secretKey: string;
       publishableKey: string;
+      webhookSecret: string;
     };
   };
   urls: {
@@ -98,6 +98,7 @@ const config: EnvConfig = {
     stripe: {
       secretKey: process.env.STRIPE_SECRET_KEY || '',
       publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
+      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
     },
   },
   urls: {

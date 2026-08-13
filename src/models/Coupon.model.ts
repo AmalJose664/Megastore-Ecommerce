@@ -10,7 +10,6 @@ const couponSchema = new Schema<ICoupon>(
       uppercase: true,
       trim: true,
       maxlength: [50, 'Coupon code cannot exceed 50 characters'],
-      index: true,
     },
     description: {
       type: String,

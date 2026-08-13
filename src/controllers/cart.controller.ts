@@ -23,6 +23,17 @@ export class CartController {
     });
   });
 
+  mergeCart = asyncHandler(async (req: Request, res: Response) => {
+    const { items } = req.body;
+    const cart = await cartService.mergeCart(req.user!.userId, items || []);
+
+    res.json({
+      success: true,
+      message: 'Cart merged successfully',
+      data: cart,
+    });
+  });
+
   updateCartItem = asyncHandler(async (req: Request, res: Response) => {
     const { quantity } = req.body;
     const cart = await cartService.updateCartItem(

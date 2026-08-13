@@ -12,8 +12,12 @@ import addressRoutes from './address.routes';
 import couponRoutes from './coupon.routes';
 import activityRoutes from './activity.routes';
 import dashboardRoutes from './dashboard.routes';
+import userRoutes from './user.routes';
+import paymentRoutes from './payment.routes';
+import bannerSectionRoutes from './bannerSection.routes';
+import settingRoutes from './setting.routes';
 
-const router = Router();
+const router: Router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
@@ -28,5 +32,9 @@ router.use('/addresses', addressRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/activities', activityRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/users', userRoutes);
+router.use('/payments', paymentRoutes);
+router.use('/banner-sections', bannerSectionRoutes);
+router.use('/settings', settingRoutes);
 
 export default router;

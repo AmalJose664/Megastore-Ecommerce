@@ -101,6 +101,38 @@ export class OrderRepository extends BaseRepository<IOrder> {
       revenue: item.revenue,
     }));
   }
+
+  async getUserStatsGrouped(): Promise<any[]> {
+    return this.model.aggregate([
+      {
+        $match: {
+          status: { $ne: OrderStatus.CANCELLED },
+        },
+      },
+      {
+        $group: {
+          _id: '$user',
+          ordersCount: { $sum: 1 },
+          totalSpent: { $sum: '$total' },
+        },
+      },
+    ]);
+  }
+
+  async getAllOrderCountsGrouped(): Promise<any[]> {
+    return this.model.aggregate([
+      {
+        $group: {
+          _id: '$user',
+          totalOrders: { $sum: 1 },
+        },
+      },
+    ]);
+  }
+
+  async findAllByUserId(userId: string): Promise<IOrder[]> {
+    return this.model.find({ user: userId }).sort({ createdAt: -1 });
+  }
 }
 
 export const orderRepository = new OrderRepository();

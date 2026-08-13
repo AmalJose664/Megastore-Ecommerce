@@ -45,8 +45,14 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
+// Body parsing middleware (skip express.json for stripe webhook raw body)
+app.use((req, res, next) => {
+  if (req.originalUrl.includes('/payments/webhook')) {
+    next();
+  } else {
+    express.json({ limit: '10mb' })(req, res, next);
+  }
+});
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 

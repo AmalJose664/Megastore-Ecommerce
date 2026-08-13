@@ -12,3 +12,7 @@ export * from './address.controller';
 export * from './coupon.controller';
 export * from './activity.controller';
 export * from './dashboard.controller';
+export * from './user.controller';
+export * from './payment.controller';
+export * from './bannerSection.controller';
+export * from './setting.controller';

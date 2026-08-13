@@ -65,7 +65,6 @@ const productSchema = new Schema<ProductDocument>(
       unique: true,
       uppercase: true,
       trim: true,
-      index: true,
     },
     stock: {
       type: Number,
@@ -150,9 +149,7 @@ productSchema.pre<ProductDocument>('save', function (next) {
 });
 
 // Indexes
-productSchema.index({ slug: 1 });
 productSchema.index({ category: 1 });
-productSchema.index({ sku: 1 });
 productSchema.index({ featured: 1 });
 productSchema.index({ isNewProduct: 1 });
 productSchema.index({ price: 1 });

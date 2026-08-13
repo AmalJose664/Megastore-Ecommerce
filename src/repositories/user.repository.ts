@@ -53,6 +53,14 @@ export class UserRepository extends BaseRepository<IUser> {
       { new: true }
     );
   }
+
+  async findAllSorted(): Promise<IUser[]> {
+    return this.model.find({}).sort({ createdAt: -1 });
+  }
+
+  async updateStatus(userId: string, isActive: boolean): Promise<IUser | null> {
+    return this.model.findByIdAndUpdate(userId, { isActive }, { new: true });
+  }
 }
 
 export const userRepository = new UserRepository();

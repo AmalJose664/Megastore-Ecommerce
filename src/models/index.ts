@@ -14,3 +14,5 @@ export { Hero } from './Hero.model';
 export { Promo } from './Promo.model';
 export { InventoryLog } from './InventoryLog.model';
 export { Activity } from './Activity.model';
+export { BannerSection } from './BannerSection.model';
+export { Setting } from './Setting.model';

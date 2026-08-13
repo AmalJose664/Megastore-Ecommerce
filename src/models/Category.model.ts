@@ -70,7 +70,6 @@ categorySchema.virtual('productCount', {
 });
 
 // Indexes
-categorySchema.index({ slug: 1 });
 categorySchema.index({ isActive: 1 });
 categorySchema.index({ displayOrder: 1 });
 

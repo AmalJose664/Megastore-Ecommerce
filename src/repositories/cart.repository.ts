@@ -64,6 +64,56 @@ export class CartRepository extends BaseRepository<ICart> {
     return cart.populate('items.product', 'name price images inStock stock');
   }
 
+  async getOrCreateCart(userId: string): Promise<ICart> {
+    let cart = await this.findByUser(userId);
+
+    if (!cart) {
+      const userObjectId = new Types.ObjectId(userId);
+      cart = await this.model.create({ user: userObjectId, items: [] });
+    }
+
+    return cart;
+  }
+
+  async mergeCartItems(
+    userId: string,
+    itemsToMerge: Array<{ productId: string; quantity: number; price: number }>
+  ): Promise<ICart> {
+    let cart = await this.findByUser(userId);
+
+    if (!cart) {
+      const userObjectId = new Types.ObjectId(userId);
+      cart = await this.model.create({
+        user: userObjectId,
+        items: itemsToMerge.map((item) => ({
+          product: new Types.ObjectId(item.productId),
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      });
+    } else {
+      itemsToMerge.forEach((item) => {
+        const existingIndex = cart!.items.findIndex(
+          (ci) => ci.product.toString() === item.productId || (ci.product as any)._id?.toString() === item.productId
+        );
+
+        if (existingIndex > -1) {
+          cart!.items[existingIndex].quantity += item.quantity;
+        } else {
+          cart!.items.push({
+            product: new Types.ObjectId(item.productId),
+            quantity: item.quantity,
+            price: item.price,
+          });
+        }
+      });
+
+      await cart.save();
+    }
+
+    return cart.populate('items.product', 'name price images inStock stock');
+  }
+
   async clearCart(userId: string): Promise<ICart | null> {
     return this.model.findOneAndUpdate(
       { user: userId },

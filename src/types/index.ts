@@ -29,6 +29,7 @@ export enum PaymentMethod {
   NET_BANKING = 'netbanking',
   WALLET = 'wallet',
   COD = 'cod',
+  STRIPE = 'stripe',
 }
 
 export enum DiscountType {
@@ -292,6 +293,61 @@ export interface IBanner extends Document {
   displayOrder: number;
   startDate?: Date;
   endDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum BannerSize {
+  SM = 'sm',
+  MD = 'md',
+  LG = 'lg',
+  SIDE_BY_SIDE = 'side-by-side',
+}
+
+export interface IBannerSlide {
+  _id?: Types.ObjectId | string;
+  imageUrl: string;
+  imageTitle?: string;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  navigateLink?: string;
+  priority: number;
+  badge?: string;
+  isActive: boolean;
+}
+
+export interface IBannerSection extends Document {
+  _id: Types.ObjectId;
+  title: string;
+  subtitle?: string;
+  size: BannerSize | 'sm' | 'md' | 'lg' | 'side-by-side';
+  displayOrder: number;
+  autoScrollInterval: number;
+  isActive: boolean;
+  slides: IBannerSlide[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ISetting extends Document {
+  _id: Types.ObjectId;
+  siteName: string;
+  siteDescription: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  currencySymbol: string;
+  logoUrl?: string;
+  socialLinks?: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+    youtube?: string;
+  };
+  metaTitle?: string;
+  metaKeywords?: string;
   createdAt: Date;
   updatedAt: Date;
 }

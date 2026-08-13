@@ -6,8 +6,10 @@ import {
   ProductModel as Product,
   Testimonial,
   Banner,
+  Setting,
+  BannerSection,
 } from '../models';
-import { UserRole } from '../types';
+import { UserRole, BannerSize } from '../types';
 
 const seedData = async () => {
   try {
@@ -24,6 +26,8 @@ const seedData = async () => {
       Product.deleteMany({}),
       Testimonial.deleteMany({}),
       Banner.deleteMany({}),
+      Setting.deleteMany({}),
+      BannerSection.deleteMany({}),
     ]);
     console.log('🗑️  Cleared existing data');
 
@@ -235,7 +239,7 @@ const seedData = async () => {
         isNew: true,
         tags: ['shoes', 'running', 'sports'],
       },
-    ]);
+    ].map((p) => ({ ...p, thumbnail: p.images[0] })));
     console.log('📦 Products created');
 
     // Create Testimonials
@@ -298,7 +302,83 @@ const seedData = async () => {
         displayOrder: 2,
       },
     ]);
-    console.log('🎨 Banners created');
+    // Create Default Site Settings
+    const setting = await Setting.create({
+      siteName: 'MegaStore',
+      siteDescription: 'Your one-stop destination for modern e-commerce shopping.',
+      contactEmail: 'support@megastore.com',
+      contactPhone: '+1 (800) 123-4567',
+      address: '123 E-Commerce Way, Tech City, TC 10001',
+      currencySymbol: '₹',
+      logoUrl: '',
+      socialLinks: {
+        facebook: 'https://facebook.com/megastore',
+        twitter: 'https://twitter.com/megastore',
+        instagram: 'https://instagram.com/megastore',
+        linkedin: 'https://linkedin.com/company/megastore',
+      },
+      metaTitle: 'MegaStore - Premium Online Shopping',
+      metaKeywords: 'ecommerce, shopping, online store, deals',
+    });
+    console.log(`⚙️  Site Settings created for ${setting.siteName}`);
+
+    // Create Banner Sections
+    const bannerSections = await BannerSection.create([
+      {
+        title: 'Featured Collection',
+        subtitle: 'Handpicked products for this season',
+        size: BannerSize.LG,
+        displayOrder: 1,
+        autoScrollInterval: 4000,
+        isActive: true,
+        slides: [
+          {
+            imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&q=80',
+            imageTitle: 'Summer Mega Festival',
+            title: 'Summer Mega Festival',
+            subtitle: 'Exclusive discounts up to 50% off on all trending styles',
+            buttonText: 'Explore Offers',
+            navigateLink: '/products',
+            priority: 1,
+            badge: 'HOT DEAL',
+            isActive: true,
+          },
+          {
+            imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80',
+            imageTitle: 'New Season Style',
+            title: 'New Season Style',
+            subtitle: 'Upgrade your wardrobe with latest fashion trends',
+            buttonText: 'Shop Fashion',
+            navigateLink: '/products?category=Fashion',
+            priority: 2,
+            badge: 'NEW ARRIVALS',
+            isActive: true,
+          },
+        ],
+      },
+      {
+        title: 'Special Tech & Electronics',
+        subtitle: 'Upgrade your smart life today',
+        size: BannerSize.SIDE_BY_SIDE,
+        displayOrder: 2,
+        autoScrollInterval: 5000,
+        isActive: true,
+        slides: [
+          {
+            imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200&q=80',
+            imageTitle: 'Premium Wireless Audio',
+            title: 'Premium Wireless Audio',
+            subtitle: 'Noise cancelling headphones & smart watch bundles at unbeatable prices',
+            buttonText: 'Shop Electronics',
+            navigateLink: '/products?category=Electronics',
+            priority: 1,
+            badge: 'BEST SELLER',
+            isActive: true,
+          },
+        ],
+      },
+    ]);
+    console.log('🖼️  Banner Sections created');
 
     console.log(`
 ╔════════════════════════════════════════════╗
@@ -309,6 +389,8 @@ const seedData = async () => {
 ║   Products: ${String(products.length).padEnd(32)} ║
 ║   Testimonials: ${String(testimonials.length).padEnd(28)} ║
 ║   Banners: ${String(banners.length).padEnd(33)} ║
+║   Banner Sections: ${String(bannerSections.length).padEnd(25)} ║
+║   Settings: ${String(1).padEnd(32)} ║
 ╠════════════════════════════════════════════╣
 ║   Admin Credentials:                       ║
 ║   Email: ${config.admin.email.padEnd(33)} ║

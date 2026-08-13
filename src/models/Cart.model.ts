@@ -30,7 +30,6 @@ const cartSchema = new Schema<ICart>(
       ref: 'User',
       required: true,
       unique: true,
-      index: true,
     },
     items: {
       type: [cartItemSchema],

@@ -68,9 +68,5 @@ const paymentSchema = new Schema<IPayment>(
   }
 );
 
-paymentSchema.index({ order: 1 });
-paymentSchema.index({ user: 1 });
-paymentSchema.index({ status: 1 });
-paymentSchema.index({ transactionId: 1 });
 
 export const Payment = mongoose.model<IPayment>('Payment', paymentSchema);

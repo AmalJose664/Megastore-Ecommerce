@@ -12,3 +12,7 @@ export * from './address.service';
 export * from './coupon.service';
 export * from './activity.service';
 export * from './dashboard.service';
+export * from './user.service';
+export * from './payment.service';
+export * from './bannerSection.service';
+export * from './setting.service';

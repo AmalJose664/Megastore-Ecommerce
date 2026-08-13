@@ -12,3 +12,6 @@ export * from './promo.repository';
 export { ActivityRepository, activityRepository } from './activity.repository';
 export * from './address.repository';
 export * from './coupon.repository';
+export * from './payment.repository';
+export * from './bannerSection.repository';
+export * from './setting.repository';
