@@ -13,7 +13,8 @@ import {
   MessageSquareQuote,
   LayoutTemplate,
   Tag,
-  Ticket
+  Ticket,
+  Image,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,12 +25,11 @@ interface SidebarProps {
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/banners', icon: Image, label: 'Custom Banners' },
   { to: '/products', icon: Package, label: 'Products' },
   { to: '/orders', icon: ShoppingCart, label: 'Orders' },
   { to: '/users', icon: Users, label: 'Users' },
   { to: '/categories', icon: FolderTree, label: 'Categories' },
-  { to: '/hero', icon: LayoutTemplate, label: 'Hero Sections' },
-  { to: '/promo', icon: Tag, label: 'Promotions' },
   { to: '/coupons', icon: Ticket, label: 'Coupons' },
   { to: '/testimonials', icon: MessageSquareQuote, label: 'Testimonials' },
   { to: '/settings', icon: Settings, label: 'Settings' },

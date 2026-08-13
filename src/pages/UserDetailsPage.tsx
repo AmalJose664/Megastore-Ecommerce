@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Mail, Calendar, ShoppingBag, UserCheck, UserX } from 'lucide-react';
-import { mockUsers, mockOrders } from '@/data/mockData';
+import { ArrowLeft, Mail, Calendar, ShoppingBag, UserCheck, UserX, Loader2 } from 'lucide-react';
+import { userService } from '@/services/userService';
+import { User, Order } from '@/types';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -10,14 +11,56 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function UserDetailsPage() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  
-  const user = mockUsers.find(u => u.id === id);
-  const [status, setStatus] = useState(user?.status || 'active');
-  
-  // Get user's orders
-  const userOrders = mockOrders.filter(o => o.customer.id === id);
+
+  const [user, setUser] = useState<User | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchUserData = async () => {
+      setLoading(true);
+      const res = await userService.getUserById(id);
+      if (res) {
+        setUser(res.user);
+        setOrders(res.orders || []);
+      }
+      setLoading(false);
+    };
+    fetchUserData();
+  }, [id]);
+
+  const toggleStatus = async () => {
+    if (!user || !id) return;
+    const currentActive = user.status === 'active';
+    const newActive = !currentActive;
+
+    const result = await userService.toggleUserStatus(id, newActive);
+    if (result.success) {
+      const newStatus = newActive ? 'active' : 'inactive';
+      setUser({ ...user, status: newStatus });
+      toast({
+        title: `User ${newActive ? 'activated' : 'deactivated'}`,
+        description: `${user.name} has been ${newActive ? 'activated' : 'deactivated'}.`,
+      });
+    } else {
+      toast({
+        title: 'Error',
+        description: result.error || 'Failed to update user status',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -32,14 +75,9 @@ export default function UserDetailsPage() {
     );
   }
 
-  const toggleStatus = () => {
-    const newStatus = status === 'active' ? 'inactive' : 'active';
-    setStatus(newStatus);
-    toast({
-      title: `User ${newStatus === 'active' ? 'activated' : 'deactivated'}`,
-      description: `${user.name} has been ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
-    });
-  };
+  const formattedJoinedDate = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString()
+    : 'N/A';
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -58,21 +96,21 @@ export default function UserDetailsPage() {
         <div className="card-elevated p-6 text-center">
           <Avatar className="w-24 h-24 mx-auto mb-4">
             <AvatarImage src={user.avatar} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-              {user.name.charAt(0)}
+            <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
+              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </AvatarFallback>
           </Avatar>
-          <h2 className="text-xl font-semibold">{user.name}</h2>
+          <h2 className="text-xl font-semibold">{user.name || 'User'}</h2>
           <p className="text-muted-foreground">{user.email}</p>
           <div className="mt-4">
-            <StatusBadge status={status} />
+            <StatusBadge status={user.status} />
           </div>
           <Button
             variant="outline"
             className="w-full mt-6"
             onClick={toggleStatus}
           >
-            {status === 'active' ? (
+            {user.status === 'active' ? (
               <>
                 <UserX className="w-4 h-4 mr-2" />
                 Deactivate User
@@ -96,7 +134,7 @@ export default function UserDetailsPage() {
                   <ShoppingBag className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{user.ordersCount}</p>
+                  <p className="text-2xl font-bold">{user.ordersCount || orders.length}</p>
                   <p className="text-sm text-muted-foreground">Total Orders</p>
                 </div>
               </div>
@@ -107,7 +145,7 @@ export default function UserDetailsPage() {
                   <span className="text-success text-lg font-bold">$</span>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">${user.totalSpent.toFixed(2)}</p>
+                  <p className="text-2xl font-bold">${(user.totalSpent || 0).toFixed(2)}</p>
                   <p className="text-sm text-muted-foreground">Total Spent</p>
                 </div>
               </div>
@@ -124,11 +162,12 @@ export default function UserDetailsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">Joined {user.createdAt}</span>
+                <span className="text-sm">Joined {formattedJoinedDate}</span>
               </div>
               <div className="flex items-center gap-3">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">Last login: {user.lastLogin || 'Never'}</span>
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize bg-secondary text-secondary-foreground">
+                  Role: {user.role}
+                </span>
               </div>
             </div>
           </div>
@@ -138,28 +177,34 @@ export default function UserDetailsPage() {
             <div className="p-6 border-b border-border">
               <h3 className="font-semibold">Order History</h3>
             </div>
-            {userOrders.length === 0 ? (
+            {orders.length === 0 ? (
               <div className="p-6 text-center text-muted-foreground">
                 No orders yet
               </div>
             ) : (
               <div className="divide-y divide-border">
-                {userOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/orders/${order.id}`)}
-                  >
-                    <div>
-                      <p className="font-medium">{order.orderNumber}</p>
-                      <p className="text-sm text-muted-foreground">{order.createdAt}</p>
+                {orders.map((order) => {
+                  const orderId = order.id || (order as any)._id;
+                  const orderDate = order.createdAt
+                    ? new Date(order.createdAt).toLocaleDateString()
+                    : 'N/A';
+                  return (
+                    <div
+                      key={orderId}
+                      className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/orders/${orderId}`)}
+                    >
+                      <div>
+                        <p className="font-medium">{order.orderNumber || `Order #${orderId.slice(-6)}`}</p>
+                        <p className="text-sm text-muted-foreground">{orderDate}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${(order.total || 0).toFixed(2)}</p>
+                        <StatusBadge status={order.status} />
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">${order.total.toFixed(2)}</p>
-                      <StatusBadge status={order.status} />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

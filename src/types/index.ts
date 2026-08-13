@@ -475,3 +475,71 @@ export interface CreateCouponRequest {
 
 export interface UpdateCouponRequest extends Partial<CreateCouponRequest> { }
 
+// Banner Section Types
+export enum BannerSize {
+  SM = 'sm',
+  MD = 'md',
+  LG = 'lg',
+  SIDE_BY_SIDE = 'side-by-side',
+}
+
+export interface BannerSlide {
+  _id?: string;
+  imageUrl: string;
+  imageTitle?: string;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  navigateLink?: string;
+  priority: number;
+  badge?: string;
+  isActive: boolean;
+}
+
+export interface BannerSection {
+  _id: string;
+  title: string;
+  subtitle?: string;
+  size: BannerSize | 'sm' | 'md' | 'lg' | 'side-by-side';
+  displayOrder: number;
+  autoScrollInterval: number;
+  isActive: boolean;
+  slides: BannerSlide[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateBannerSectionRequest {
+  title: string;
+  subtitle?: string;
+  size: BannerSize | 'sm' | 'md' | 'lg' | 'side-by-side';
+  displayOrder: number;
+  autoScrollInterval?: number;
+  isActive?: boolean;
+  slides: BannerSlide[];
+}
+
+export interface UpdateBannerSectionRequest extends Partial<CreateBannerSectionRequest> {}
+
+// Site Settings Types
+export interface SiteSettings {
+  _id?: string;
+  siteName: string;
+  siteDescription: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  currencySymbol: string;
+  logoUrl?: string;
+  socialLinks?: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+    youtube?: string;
+  };
+  metaTitle?: string;
+  metaKeywords?: string;
+}
+
+

@@ -19,6 +19,7 @@ import TestimonialsPage from "./pages/TestimonialsPage";
 import HeroPage from "./pages/HeroPage";
 import PromoPage from "./pages/PromoPage";
 import CouponsPage from "./pages/CouponsPage";
+import BannersPage from "./pages/BannersPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/users" element={<UsersPage />} />
               <Route path="/users/:id" element={<UserDetailsPage />} />
               <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/banners" element={<BannersPage />} />
               <Route path="/testimonials" element={<TestimonialsPage />} />
               <Route path="/hero" element={<HeroPage />} />
               <Route path="/promo" element={<PromoPage />} />

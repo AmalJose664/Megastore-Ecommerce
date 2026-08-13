@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, MoreVertical, UserCheck, UserX } from 'lucide-react';
-import { mockUsers } from '@/data/mockData';
+import { Eye, MoreVertical, UserCheck, UserX, Loader2 } from 'lucide-react';
+import { userService } from '@/services/userService';
 import { User } from '@/types';
 import PageHeader from '@/components/ui/PageHeader';
 import DataTable from '@/components/ui/DataTable';
@@ -19,20 +19,49 @@ import { useToast } from '@/hooks/use-toast';
 export default function UsersPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const toggleUserStatus = (userId: string) => {
-    setUsers(users.map(user => {
-      if (user.id === userId) {
-        const newStatus = user.status === 'active' ? 'inactive' : 'active';
-        toast({
-          title: `User ${newStatus === 'active' ? 'activated' : 'deactivated'}`,
-          description: `${user.name} has been ${newStatus === 'active' ? 'activated' : 'deactivated'}.`,
-        });
-        return { ...user, status: newStatus };
-      }
-      return user;
-    }));
+  const fetchUsers = async () => {
+    setLoading(true);
+    const data = await userService.getUsers();
+    if (data) {
+      setUsers(data);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const toggleUserStatus = async (user: User) => {
+    const isCurrentlyActive = user.status === 'active';
+    const newIsActive = !isCurrentlyActive;
+
+    const result = await userService.toggleUserStatus(user.id || (user as any)._id, newIsActive);
+
+    if (result.success) {
+      const newStatus = newIsActive ? 'active' : 'inactive';
+      setUsers((prevUsers) =>
+        prevUsers.map((u) => {
+          if ((u.id || (u as any)._id) === (user.id || (user as any)._id)) {
+            return { ...u, status: newStatus };
+          }
+          return u;
+        })
+      );
+      toast({
+        title: `User ${newIsActive ? 'activated' : 'deactivated'}`,
+        description: `${user.name} has been ${newIsActive ? 'activated' : 'deactivated'}.`,
+      });
+    } else {
+      toast({
+        title: 'Error',
+        description: result.error || 'Failed to update user status',
+        variant: 'destructive',
+      });
+    }
   };
 
   const columns = [
@@ -43,12 +72,12 @@ export default function UsersPage() {
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10">
             <AvatarImage src={user.avatar} />
-            <AvatarFallback className="bg-secondary text-secondary-foreground">
-              {user.name.charAt(0)}
+            <AvatarFallback className="bg-secondary text-secondary-foreground font-medium">
+              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium">{user.name}</p>
+            <p className="font-medium">{user.name || `${(user as any).firstName || ''} ${(user as any).lastName || ''}`.trim() || 'User'}</p>
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
         </div>
@@ -63,79 +92,95 @@ export default function UsersPage() {
       key: 'orders',
       header: 'Orders',
       render: (user: User) => (
-        <span className="text-sm">{user.ordersCount} orders</span>
+        <span className="text-sm">{user.ordersCount || 0} orders</span>
       ),
     },
     {
       key: 'spent',
       header: 'Total Spent',
       render: (user: User) => (
-        <span className="font-medium">${user.totalSpent.toFixed(2)}</span>
+        <span className="font-medium">${(user.totalSpent || 0).toFixed(2)}</span>
       ),
     },
     {
       key: 'joined',
       header: 'Joined',
-      render: (user: User) => (
-        <span className="text-sm text-muted-foreground">{user.createdAt}</span>
-      ),
+      render: (user: User) => {
+        let joinedDate = 'N/A';
+        if (user.createdAt) {
+          try {
+            joinedDate = new Date(user.createdAt).toLocaleDateString();
+          } catch {
+            joinedDate = String(user.createdAt);
+          }
+        }
+        return <span className="text-sm text-muted-foreground">{joinedDate}</span>;
+      },
     },
     {
-      key: 'lastLogin',
-      header: 'Last Login',
+      key: 'role',
+      header: 'Role',
       render: (user: User) => (
-        <span className="text-sm text-muted-foreground">{user.lastLogin || 'Never'}</span>
+        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize bg-secondary text-secondary-foreground">
+          {user.role}
+        </span>
       ),
     },
     {
       key: 'actions',
       header: '',
       className: 'text-right',
-      render: (user: User) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => navigate(`/users/${user.id}`)}>
-              <Eye className="w-4 h-4 mr-2" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => toggleUserStatus(user.id)}>
-              {user.status === 'active' ? (
-                <>
-                  <UserX className="w-4 h-4 mr-2" />
-                  Deactivate
-                </>
-              ) : (
-                <>
-                  <UserCheck className="w-4 h-4 mr-2" />
-                  Activate
-                </>
-              )}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      render: (user: User) => {
+        const userId = user.id || (user as any)._id;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate(`/users/${userId}`)}>
+                <Eye className="w-4 h-4 mr-2" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => toggleUserStatus(user)}>
+                {user.status === 'active' ? (
+                  <>
+                    <UserX className="w-4 h-4 mr-2" />
+                    Deactivate
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="w-4 h-4 mr-2" />
+                    Activate
+                  </>
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
   ];
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Users"
-        description="Manage customer accounts"
-      />
+      <PageHeader title="Users" description="Manage customer accounts" />
 
-      <DataTable
-        data={users}
-        columns={columns}
-        searchKey="name"
-        searchPlaceholder="Search users..."
-        emptyMessage="No users found"
-      />
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <DataTable
+          data={users}
+          columns={columns}
+          searchKey="name"
+          searchPlaceholder="Search users..."
+          emptyMessage="No users found"
+        />
+      )}
     </div>
   );
 }
