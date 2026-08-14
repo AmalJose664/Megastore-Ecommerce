@@ -61,7 +61,7 @@ const config: EnvConfig = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '5000', 10),
   apiVersion: process.env.API_VERSION || 'v1',
-  mongoUri: process.env.MONGODB_URI || "REDACTED",
+  mongoUri: process.env.MONGODB_URI || "",
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET || 'access-secret-key',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'refresh-secret-key',
