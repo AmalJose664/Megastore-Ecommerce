@@ -8,6 +8,8 @@ import {
   Banner,
   Setting,
   BannerSection,
+  Wishlist,
+  Review,
 } from '../models';
 import { UserRole, BannerSize } from '../types';
 
@@ -28,6 +30,8 @@ const seedData = async () => {
       Banner.deleteMany({}),
       Setting.deleteMany({}),
       BannerSection.deleteMany({}),
+      Wishlist.deleteMany({}),
+      Review.deleteMany({}),
     ]);
     console.log('🗑️  Cleared existing data');
 
@@ -44,7 +48,7 @@ const seedData = async () => {
     console.log('👤 Admin user created');
 
     // Create Sample User
-    await User.create({
+    const sampleUser = await User.create({
       firstName: 'John',
       lastName: 'Doe',
       email: 'user@example.com',
@@ -241,6 +245,36 @@ const seedData = async () => {
       },
     ].map((p) => ({ ...p, thumbnail: p.images[0] })));
     console.log('📦 Products created');
+
+    // Create Wishlist for Sample User
+    await Wishlist.create({
+      user: sampleUser._id,
+      products: [products[0]._id, products[1]._id],
+    });
+    console.log('❤️  Wishlist created for sample user');
+
+    // Create Sample Reviews for Products
+    await Review.create([
+      {
+        product: products[0]._id,
+        user: sampleUser._id,
+        rating: 5,
+        title: 'Outstanding Sound Quality!',
+        comment: 'These headphones have incredible sound stage and active noise cancellation. Battery lasts for days!',
+        isVerifiedPurchase: true,
+        isApproved: true,
+      },
+      {
+        product: products[1]._id,
+        user: sampleUser._id,
+        rating: 4,
+        title: 'Great Smartwatch',
+        comment: 'Accurate fitness tracking and beautiful display. Highly recommended for daily use.',
+        isVerifiedPurchase: true,
+        isApproved: true,
+      },
+    ]);
+    console.log('⭐ Sample Reviews created');
 
     // Create Testimonials
     const testimonials = await Testimonial.create([

@@ -1,7 +1,8 @@
-import { categoryRepository, CategoryRepository } from '../repositories/category.repository';
+import { categoryRepository, CategoryRepository, CategoryFilters } from '../repositories/category.repository';
 import slugify from 'slugify';
-import { ICategory } from '../types';
+import { ICategory, PaginatedResponse } from '../types';
 import { ApiError } from '../utils/ApiError';
+import { buildPaginatedResponse } from '../utils/pagination';
 
 interface CreateCategoryDTO {
     name: string;
@@ -28,6 +29,20 @@ export class CategoryService {
      */
     async getCategoryTree(): Promise<ICategory[]> {
         return await this.categoryRepo.findCategoryTree();
+    }
+
+    /**
+     * Get paginated categories with filters
+     */
+    async getCategoriesPaginated(
+        filters: CategoryFilters = {},
+        page: number = 1,
+        limit: number = 10,
+        sort: string = 'displayOrder',
+        order: 'asc' | 'desc' = 'asc'
+    ): Promise<PaginatedResponse<ICategory>> {
+        const { categories, total } = await this.categoryRepo.findWithFilters(filters, page, limit, sort, order);
+        return buildPaginatedResponse(categories, total, page, limit);
     }
 
     /**
@@ -173,8 +188,8 @@ export class CategoryService {
             );
         }
 
-        // Perform soft delete
-        await this.categoryRepo.softDelete(id);
+        // Perform delete
+        await this.categoryRepo.deleteById(id);
     }
 
     /**

@@ -16,3 +16,4 @@ export * from './user.controller';
 export * from './payment.controller';
 export * from './bannerSection.controller';
 export * from './setting.controller';
+export * from './wishlist.controller';

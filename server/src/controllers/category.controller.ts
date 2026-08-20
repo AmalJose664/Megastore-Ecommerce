@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { categoryService, CategoryService } from '../services/category.service';
 import { asyncHandler } from '../utils/asyncHandler';
+import { parsePagination } from '../utils/pagination';
 
 export class CategoryController {
     constructor(private categorySer: CategoryService) { }
@@ -125,6 +126,29 @@ export class CategoryController {
             message: 'Categories retrieved successfully',
             data: categories,
         });
+    });
+
+    /**
+     * GET /api/v1/categories/admin/paginated
+     * Get paginated categories with search and filters (Admin only)
+     */
+    getPaginatedCategories = asyncHandler(async (req: Request, res: Response) => {
+        const {
+            page = 1,
+            limit = 10,
+            sort = 'displayOrder',
+            order = 'asc',
+        } = parsePagination(req.query);
+
+        const filters = {
+            search: req.query.search as string,
+            level: req.query.level as any,
+            status: req.query.status as any,
+            parentCategory: req.query.parentCategory as string,
+        };
+
+        const result = await this.categorySer.getCategoriesPaginated(filters, page, limit, sort!, order!);
+        res.json(result);
     });
 
     /**

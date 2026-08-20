@@ -9,8 +9,14 @@ export class UserController {
    * GET /api/v1/users
    * Get all users (Admin only)
    */
-  getUsers = asyncHandler(async (_req: Request, res: Response) => {
-    const users = await this.userSer.getAllUsers();
+  getUsers = asyncHandler(async (req: Request, res: Response) => {
+    const filters = {
+      search: req.query.search as string,
+      status: req.query.status as any,
+      role: req.query.role as any,
+    };
+
+    const users = await this.userSer.getAllUsers(filters);
 
     res.status(200).json({
       success: true,

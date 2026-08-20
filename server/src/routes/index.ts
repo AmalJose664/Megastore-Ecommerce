@@ -16,6 +16,7 @@ import userRoutes from './user.routes';
 import paymentRoutes from './payment.routes';
 import bannerSectionRoutes from './bannerSection.routes';
 import settingRoutes from './setting.routes';
+import wishlistRoutes from './wishlist.routes';
 
 const router: Router = Router();
 
@@ -36,5 +37,6 @@ router.use('/users', userRoutes);
 router.use('/payments', paymentRoutes);
 router.use('/banner-sections', bannerSectionRoutes);
 router.use('/settings', settingRoutes);
+router.use('/wishlist', wishlistRoutes);
 
 export default router;

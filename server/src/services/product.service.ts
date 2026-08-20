@@ -1,4 +1,4 @@
-import { productRepository, ProductFilters } from '../repositories';
+import { productRepository, categoryRepository, ProductFilters } from '../repositories';
 import { ApiError } from '../utils/ApiError';
 import { ProductDocument } from '../models';
 import { PaginatedResponse } from '../types';
@@ -13,6 +13,13 @@ export class ProductService {
       data.subcategory = undefined;
     }
 
+    if (data.category) {
+      const categoryExists = await categoryRepository.findById(data.category as any);
+      if (!categoryExists) {
+        throw ApiError.badRequest('Selected category does not exist');
+      }
+    }
+
     const existingSku = await productRepository.findBySku(data.sku!);
     if (existingSku) {
       throw ApiError.conflict('Product with this SKU already exists');
@@ -23,7 +30,7 @@ export class ProductService {
 
   async getProductById(id: string): Promise<ProductDocument> {
     const product = await productRepository.findById(id);
-    if (!product || !product.isActive) {
+    if (!product) {
       throw ApiError.notFound('Product not found');
     }
     return product;
@@ -62,6 +69,13 @@ export class ProductService {
       data.subcategory = undefined;
     }
 
+    if (data.category) {
+      const categoryExists = await categoryRepository.findById(data.category as any);
+      if (!categoryExists) {
+        throw ApiError.badRequest('Selected category does not exist');
+      }
+    }
+
     if (data.sku) {
       const existingSku = await productRepository.findBySku(data.sku);
       if (existingSku && existingSku._id.toString() !== id) {
@@ -98,6 +112,10 @@ export class ProductService {
 
   async getNewProducts(limit: number = 10): Promise<ProductDocument[]> {
     return productRepository.getNewProducts(limit);
+  }
+
+  async getSearchSuggestions(query: string, limit: number = 6): Promise<ProductDocument[]> {
+    return productRepository.getSuggestions(query, limit);
   }
 
   async updateStock(productId: string, quantity: number, _userId: string): Promise<ProductDocument> {

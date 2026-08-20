@@ -1,6 +1,6 @@
 import { FilterQuery, Types } from 'mongoose';
 import { BaseRepository } from './base.repository';
-import { ProductModel, ProductDocument } from '../models';
+import { ProductModel, Category, ProductDocument } from '../models';
 
 export interface ProductFilters {
   category?: string;
@@ -11,13 +11,26 @@ export interface ProductFilters {
   featured?: boolean;
   isNew?: boolean;
   inStock?: boolean;
+  stockStatus?: 'all' | 'in_stock' | 'low_stock' | 'out_of_stock';
+  status?: 'all' | 'active' | 'archived';
   search?: string;
   tags?: string[];
+  isActive?: boolean;
 }
 
 export class ProductRepository extends BaseRepository<ProductDocument> {
   constructor() {
     super(ProductModel);
+  }
+
+  async create(data: Partial<ProductDocument>): Promise<ProductDocument> {
+    const created = await this.model.create(data);
+    const populated = await this.model.findById(created._id).populate('category subcategory');
+    return populated!;
+  }
+
+  async updateById(id: string | Types.ObjectId, update: any): Promise<ProductDocument | null> {
+    return this.model.findByIdAndUpdate(id, update, { new: true, runValidators: true }).populate('category subcategory');
   }
 
   async findById(id: string | Types.ObjectId): Promise<ProductDocument | null> {
@@ -26,6 +39,19 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
 
   async findBySlug(slug: string): Promise<ProductDocument | null> {
     return this.model.findOne({ slug, isActive: true }).populate('category subcategory');
+  }
+
+  async getSuggestions(searchQuery: string, limit: number = 6): Promise<ProductDocument[]> {
+    if (!searchQuery || !searchQuery.trim()) return [];
+    const regex = { $regex: searchQuery.trim(), $options: 'i' };
+    return this.model
+      .find({
+        isActive: true,
+        $or: [{ name: regex }, { sku: regex }],
+      })
+      .select('name slug price thumbnail images category')
+      .populate('category', 'name slug')
+      .limit(limit);
   }
 
   async findBySku(sku: string): Promise<ProductDocument | null> {
@@ -39,10 +65,51 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
     sort: string = 'createdAt',
     order: 'asc' | 'desc' = 'desc'
   ): Promise<{ products: ProductDocument[]; total: number }> {
-    const query: FilterQuery<ProductDocument> = { isActive: true };
+    const query: FilterQuery<ProductDocument> = {};
 
-    if (filters.category) {
-      query.category = filters.category;
+    if (filters.status === 'active') {
+      query.isActive = true;
+    } else if (filters.status === 'archived') {
+      query.isActive = false;
+    } else if (filters.status === 'all') {
+      delete query.isActive;
+    } else if (filters.isActive !== undefined) {
+      query.isActive = filters.isActive;
+    }
+
+    if (filters.stockStatus === 'in_stock') {
+      query.stock = { $gt: 0 };
+    } else if (filters.stockStatus === 'low_stock') {
+      query.$expr = { $and: [{ $gt: ['$stock', 0] }, { $lte: ['$stock', '$lowStockThreshold'] }] };
+    } else if (filters.stockStatus === 'out_of_stock') {
+      query.stock = 0;
+    } else if (filters.inStock !== undefined) {
+      query.inStock = filters.inStock;
+    }
+
+    if (filters.category && filters.category !== 'all') {
+      if (Types.ObjectId.isValid(filters.category)) {
+        query.category = filters.category;
+      } else {
+        const catDocs = await Category.find({
+          $or: [
+            { slug: filters.category.toLowerCase() },
+            { name: { $regex: new RegExp(`^${filters.category}$`, 'i') } },
+            { name: { $regex: filters.category, $options: 'i' } }
+          ]
+        }).select('_id');
+
+        if (catDocs.length > 0) {
+          query.category = { $in: catDocs.map((c: any) => c._id) };
+        } else {
+          const regex = new RegExp(filters.category, 'i');
+          query.$or = [
+            { name: regex },
+            { description: regex },
+            { tags: regex }
+          ];
+        }
+      }
     }
 
     if (filters.subcategory) {
@@ -71,12 +138,12 @@ export class ProductRepository extends BaseRepository<ProductDocument> {
       query.isNewProduct = filters.isNew;
     }
 
-    if (filters.inStock !== undefined) {
-      query.inStock = filters.inStock;
-    }
-
     if (filters.search) {
-      query.$text = { $search: filters.search };
+      query.$or = [
+        { name: { $regex: filters.search, $options: 'i' } },
+        { sku: { $regex: filters.search, $options: 'i' } },
+        { description: { $regex: filters.search, $options: 'i' } },
+      ];
     }
 
     if (filters.tags && filters.tags.length > 0) {

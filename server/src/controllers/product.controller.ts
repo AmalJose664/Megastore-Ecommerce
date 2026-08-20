@@ -1,13 +1,11 @@
 import { Request, Response } from 'express';
-import { productService } from '../services';
+import { productService } from '../services/product.service';
 import { asyncHandler } from '../utils/asyncHandler';
 import { parsePagination } from '../utils/pagination';
-import { ProductFilters } from '../repositories';
 
 export class ProductController {
   createProduct = asyncHandler(async (req: Request, res: Response) => {
     const product = await productService.createProduct(req.body);
-
     res.status(201).json({
       success: true,
       message: 'Product created successfully',
@@ -23,15 +21,17 @@ export class ProductController {
       order = 'desc',
     } = parsePagination(req.query);
 
-    const filters: ProductFilters = {
+    const filters = {
       category: req.query.category as string,
       subcategory: req.query.subcategory as string,
-      minPrice: req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined,
-      maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined,
-      minRating: req.query.minRating ? parseFloat(req.query.minRating as string) : undefined,
-      featured: req.query.featured === 'true' ? true : req.query.featured === 'false' ? false : undefined,
-      isNew: req.query.isNew === 'true' ? true : req.query.isNew === 'false' ? false : undefined,
-      inStock: req.query.inStock === 'true' ? true : req.query.inStock === 'false' ? false : undefined,
+      minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
+      maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+      minRating: req.query.minRating ? Number(req.query.minRating) : undefined,
+      featured: req.query.featured !== undefined ? req.query.featured === 'true' : undefined,
+      isNew: req.query.isNew !== undefined ? req.query.isNew === 'true' : undefined,
+      inStock: req.query.inStock !== undefined ? req.query.inStock === 'true' : undefined,
+      stockStatus: req.query.stockStatus as any,
+      status: req.query.status as any,
       search: req.query.search as string,
       tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
     };
@@ -43,7 +43,6 @@ export class ProductController {
 
   getProductById = asyncHandler(async (req: Request, res: Response) => {
     const product = await productService.getProductById(req.params.id);
-
     res.json({
       success: true,
       data: product,
@@ -52,7 +51,6 @@ export class ProductController {
 
   getProductBySlug = asyncHandler(async (req: Request, res: Response) => {
     const product = await productService.getProductBySlug(req.params.slug);
-
     res.json({
       success: true,
       data: product,
@@ -61,7 +59,6 @@ export class ProductController {
 
   updateProduct = asyncHandler(async (req: Request, res: Response) => {
     const product = await productService.updateProduct(req.params.id, req.body);
-
     res.json({
       success: true,
       message: 'Product updated successfully',
@@ -71,17 +68,39 @@ export class ProductController {
 
   deleteProduct = asyncHandler(async (req: Request, res: Response) => {
     await productService.deleteProduct(req.params.id);
-
     res.json({
       success: true,
       message: 'Product deleted successfully',
     });
   });
 
-  getFeaturedProducts = asyncHandler(async (req: Request, res: Response) => {
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
-    const products = await productService.getFeaturedProducts(limit);
+  bulkDeleteProducts = asyncHandler(async (req: Request, res: Response) => {
+    const { productIds } = req.body;
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      res.status(400).json({ success: false, message: 'productIds array is required' });
+      return;
+    }
 
+    const deletedIds: string[] = [];
+    for (const id of productIds) {
+      try {
+        await productService.deleteProduct(id);
+        deletedIds.push(id);
+      } catch (err: any) {
+        console.warn(`Failed to delete product ${id}:`, err.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully deleted ${deletedIds.length} products`,
+      data: { deletedIds },
+    });
+  });
+
+  getFeaturedProducts = asyncHandler(async (req: Request, res: Response) => {
+    const limit = req.query.limit ? Number(req.query.limit) : 8;
+    const products = await productService.getFeaturedProducts(limit);
     res.json({
       success: true,
       data: products,
@@ -89,9 +108,18 @@ export class ProductController {
   });
 
   getNewProducts = asyncHandler(async (req: Request, res: Response) => {
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    const limit = req.query.limit ? Number(req.query.limit) : 8;
     const products = await productService.getNewProducts(limit);
+    res.json({
+      success: true,
+      data: products,
+    });
+  });
 
+  getSearchSuggestions = asyncHandler(async (req: Request, res: Response) => {
+    const q = (req.query.q as string) || (req.query.search as string) || '';
+    const limit = req.query.limit ? Number(req.query.limit) : 6;
+    const products = await productService.getSearchSuggestions(q, limit);
     res.json({
       success: true,
       data: products,

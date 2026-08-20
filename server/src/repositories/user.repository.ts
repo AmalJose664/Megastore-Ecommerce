@@ -1,10 +1,46 @@
+import { FilterQuery } from 'mongoose';
 import { BaseRepository } from './base.repository';
 import { User } from '../models';
 import { IUser } from '../types';
 
+export interface UserFilters {
+  search?: string;
+  status?: 'all' | 'active' | 'inactive';
+  role?: 'all' | 'admin' | 'customer' | 'user';
+}
+
 export class UserRepository extends BaseRepository<IUser> {
   constructor() {
     super(User);
+  }
+
+  async findWithFilters(filters: UserFilters = {}): Promise<IUser[]> {
+    const query: FilterQuery<IUser> = {};
+
+    if (filters.status === 'active') {
+      query.isActive = true;
+    } else if (filters.status === 'inactive') {
+      query.isActive = false;
+    }
+
+    if (filters.role && filters.role !== 'all') {
+      if (filters.role === 'customer' || filters.role === 'user') {
+        query.role = { $in: ['customer', 'user'] as any };
+      } else {
+        query.role = filters.role as any;
+      }
+    }
+
+    if (filters.search) {
+      const regex = { $regex: filters.search, $options: 'i' };
+      query.$or = [
+        { firstName: regex },
+        { lastName: regex },
+        { email: regex },
+      ];
+    }
+
+    return this.model.find(query).sort({ createdAt: -1 });
   }
 
   async findByEmail(email: string): Promise<IUser | null> {

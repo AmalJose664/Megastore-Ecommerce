@@ -72,6 +72,45 @@ export class DashboardService {
         };
     }
 
+    async getAnalyticsData(range: string = '7days') {
+        const now = new Date();
+        let startDate: Date | undefined;
+        let endDate: Date | undefined = now;
+
+        if (range === 'today') {
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        } else if (range === '7days') {
+            startDate = new Date();
+            startDate.setDate(startDate.getDate() - 7);
+        } else if (range === 'this_month') {
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        } else if (range === 'all') {
+            startDate = undefined;
+            endDate = undefined;
+        } else {
+            startDate = new Date();
+            startDate.setDate(startDate.getDate() - 7);
+        }
+
+        const [analytics, totalUsersCount] = await Promise.all([
+            orderRepository.getAnalyticsData(startDate, endDate),
+            userRepository.countDocuments({}),
+        ]);
+
+        const customerLtv = totalUsersCount > 0 ? Math.round(analytics.totalRevenue / totalUsersCount) : 0;
+
+        return {
+            range,
+            totalRevenue: analytics.totalRevenue,
+            totalOrders: analytics.totalOrders,
+            avgOrderValue: analytics.avgOrderValue,
+            customerLtv,
+            salesTrend: analytics.salesTrend,
+            topSellingProducts: analytics.topProducts,
+            revenueByCategory: analytics.categoryBreakdown,
+        };
+    }
+
     private calculatePercentageChange(current: number, previous: number): number {
         if (previous === 0) return current > 0 ? 100 : 0;
         const change = ((current - previous) / previous) * 100;

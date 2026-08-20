@@ -13,6 +13,7 @@ router.use(authenticate);
 
 router.post('/', reviewController.addReview);
 router.get('/my-reviews', reviewController.getUserReviews);
+router.get('/can-review/:productId', reviewController.checkCanReview);
 router.patch('/:id', reviewController.updateReview);
 router.delete('/:id', reviewController.deleteReview);
 

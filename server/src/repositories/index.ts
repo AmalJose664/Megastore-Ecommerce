@@ -15,3 +15,4 @@ export * from './coupon.repository';
 export * from './payment.repository';
 export * from './bannerSection.repository';
 export * from './setting.repository';
+export * from './wishlist.repository';

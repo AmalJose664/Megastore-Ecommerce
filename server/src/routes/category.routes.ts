@@ -54,6 +54,14 @@ router.get(
     categoryController.getAllCategories
 );
 
+// GET /api/v1/categories/admin/paginated - Get paginated categories with search/filters
+router.get(
+    '/admin/paginated',
+    authenticate,
+    authorize(UserRole.ADMIN),
+    categoryController.getPaginatedCategories
+);
+
 // GET /api/v1/categories/:id/subcategories - Get subcategories
 router.get(
     '/:id/subcategories',

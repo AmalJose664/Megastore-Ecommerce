@@ -119,8 +119,13 @@ const orderSchema = new Schema<IOrder>(
             type: String,
             maxlength: [500, 'Notes cannot exceed 500 characters'],
         },
+        carrier: {
+            type: String,
+            trim: true,
+        },
         trackingNumber: {
             type: String,
+            trim: true,
         },
         estimatedDelivery: {
             type: Date,

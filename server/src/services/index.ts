@@ -16,3 +16,4 @@ export * from './user.service';
 export * from './payment.service';
 export * from './bannerSection.service';
 export * from './setting.service';
+export * from './wishlist.service';

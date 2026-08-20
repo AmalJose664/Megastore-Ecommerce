@@ -116,6 +116,21 @@ const productSchema = new Schema<ProductDocument>(
       width: { type: Number, min: 0 },
       height: { type: Number, min: 0 },
     },
+    hasVariants: {
+      type: Boolean,
+      default: false,
+    },
+    variants: [
+      {
+        sku: { type: String, uppercase: true, trim: true },
+        attributes: { type: Map, of: String, required: true },
+        price: { type: Number, min: 0 },
+        originalPrice: { type: Number, min: 0 },
+        stock: { type: Number, required: true, min: 0, default: 0 },
+        image: { type: String },
+        inStock: { type: Boolean, default: true },
+      },
+    ],
     isActive: {
       type: Boolean,
       default: true,
@@ -134,7 +149,7 @@ const productSchema = new Schema<ProductDocument>(
   }
 );
 
-// Generate slug and set thumbnail before saving
+// Generate slug, set thumbnail, and update variant stocks before saving
 productSchema.pre<ProductDocument>('save', function (next) {
   if (this.isModified('name')) {
     this.slug = slugify(this.name, { lower: true, strict: true });
@@ -142,6 +157,16 @@ productSchema.pre<ProductDocument>('save', function (next) {
 
   if (this.isModified('images') && this.images.length > 0 && !this.thumbnail) {
     this.thumbnail = this.images[0];
+  }
+
+  // If variants exist, calculate total stock and set variant inStock status
+  if (this.hasVariants && Array.isArray(this.variants) && this.variants.length > 0) {
+    let totalStock = 0;
+    this.variants.forEach((v: any) => {
+      v.inStock = v.stock > 0;
+      totalStock += v.stock || 0;
+    });
+    this.stock = totalStock;
   }
 
   this.inStock = this.stock > 0;

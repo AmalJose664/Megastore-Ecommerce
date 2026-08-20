@@ -8,6 +8,7 @@ const router = Router();
 
 // Public routes
 router.get('/', productController.getProducts);
+router.get('/suggestions', productController.getSearchSuggestions);
 router.get('/featured', productController.getFeaturedProducts);
 router.get('/new', productController.getNewProducts);
 router.get('/slug/:slug', productController.getProductBySlug);
@@ -28,6 +29,13 @@ router.put(
   authorize(UserRole.ADMIN),
   validateMongoId('id'),
   productController.updateProduct
+);
+
+router.post(
+  '/bulk-delete',
+  authenticate,
+  authorize(UserRole.ADMIN),
+  productController.bulkDeleteProducts
 );
 
 router.delete(

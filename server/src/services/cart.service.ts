@@ -7,22 +7,39 @@ export class CartService {
     return cartRepository.getOrCreateCart(userId);
   }
 
-  async addToCart(userId: string, productId: string, quantity: number = 1): Promise<ICart> {
+  async addToCart(userId: string, productId: string, quantity: number = 1, variantId?: string): Promise<ICart> {
     const product = await productRepository.findById(productId);
 
     if (!product) {
       throw ApiError.notFound('Product not found');
     }
 
-    if (!product.inStock || product.stock < quantity) {
-      throw ApiError.badRequest('Product is out of stock or insufficient quantity');
+    let price = product.price;
+    let selectedVariant: any = undefined;
+
+    if (variantId && product.hasVariants && Array.isArray(product.variants)) {
+      selectedVariant = product.variants.find((v: any) => (v._id || v.id)?.toString() === variantId);
+      if (!selectedVariant) {
+        throw ApiError.notFound('Selected product variant not found');
+      }
+
+      if (selectedVariant.stock < quantity) {
+        throw ApiError.badRequest('Selected variant is out of stock or has insufficient quantity');
+      }
+      if (selectedVariant.price) {
+        price = selectedVariant.price;
+      }
+    } else {
+      if (!product.inStock || product.stock < quantity) {
+        throw ApiError.badRequest('Product is out of stock or insufficient quantity');
+      }
     }
 
     if (quantity <= 0) {
       throw ApiError.badRequest('Quantity must be greater than 0');
     }
 
-    return cartRepository.addItem(userId, productId, quantity, product.price);
+    return cartRepository.addItem(userId, productId, quantity, price, variantId, selectedVariant);
   }
 
   async mergeCart(

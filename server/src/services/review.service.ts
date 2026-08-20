@@ -1,9 +1,29 @@
 import { reviewRepository } from '../repositories/review.repository';
 import { productRepository } from '../repositories/product.repository';
+import { orderRepository } from '../repositories/order.repository';
 import { ApiError } from '../utils/ApiError';
-import { IReview } from '../types';
+import { IReview, OrderStatus } from '../types';
 
 export class ReviewService {
+    async canUserReviewProduct(userId: string, productId: string): Promise<{ canReview: boolean; reason?: string }> {
+        const existingReview = await reviewRepository.findByProductAndUser(productId, userId);
+        if (existingReview) {
+            return { canReview: false, reason: 'You have already reviewed this product' };
+        }
+
+        const userOrders = await orderRepository.findAllByUserId(userId);
+        const hasPurchased = userOrders.some(order => 
+            (order.status === OrderStatus.DELIVERED || order.status === OrderStatus.PAID) &&
+            order.items.some(item => item.product?.toString() === productId)
+        );
+
+        if (!hasPurchased) {
+            return { canReview: false, reason: 'Only verified buyers who completed a purchase can review this product.' };
+        }
+
+        return { canReview: true };
+    }
+
     async addReview(userId: string, data: Partial<IReview>): Promise<IReview> {
         const { product: productId } = data;
 
@@ -11,22 +31,19 @@ export class ReviewService {
             throw ApiError.badRequest('Product ID is required');
         }
 
-        // Check if user already reviewed this product
-        const existingReview = await reviewRepository.findByProductAndUser(productId.toString(), userId);
-        if (existingReview) {
-            throw ApiError.conflict('You have already reviewed this product');
+        const check = await this.canUserReviewProduct(userId, productId.toString());
+        if (!check.canReview) {
+            throw ApiError.forbidden(check.reason || 'Cannot review product');
         }
 
         const review = await reviewRepository.create({
             ...data,
             user: userId as any,
+            isVerifiedPurchase: true,
+            isApproved: true,
         });
 
-        // Update product rating if the review is approved immediately (or we could wait for approval)
-        // For now, let's assume we might need to update if it's auto-approved or later.
-        if (review.isApproved) {
-            await this.updateProductStats(productId.toString());
-        }
+        await this.updateProductStats(productId.toString());
 
         return review;
     }

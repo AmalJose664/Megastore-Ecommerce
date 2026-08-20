@@ -41,6 +41,7 @@ export enum ActivityType {
   ORDER_CREATED = 'order_created',
   ORDER_SHIPPED = 'order_shipped',
   ORDER_DELIVERED = 'order_delivered',
+  ORDER_STATUS_CHANGED = 'order_status_changed',
   PRODUCT_UPDATED = 'product_updated',
   USER_REGISTERED = 'user_registered',
 }
@@ -97,6 +98,17 @@ export interface ICategory extends Document {
 }
 
 // Product Types
+export interface IProductVariant {
+  _id?: Types.ObjectId | string;
+  sku?: string;
+  attributes: Record<string, string>; // e.g. { size: 'M', color: 'Black' }
+  price?: number;
+  originalPrice?: number;
+  stock: number;
+  image?: string;
+  inStock?: boolean;
+}
+
 export interface Product {
   name: string;
   slug?: string;
@@ -118,6 +130,9 @@ export interface Product {
   reviewCount?: number;
   inStock?: boolean;
 
+  hasVariants?: boolean;
+  variants?: IProductVariant[];
+
   featured?: boolean;
   isNewProduct?: boolean;
 
@@ -138,6 +153,8 @@ export interface Product {
 // Cart Types
 export interface ICartItem {
   product: Types.ObjectId;
+  variantId?: string;
+  selectedVariant?: IProductVariant;
   quantity: number;
   price: number;
 }
@@ -164,6 +181,8 @@ export interface IWishlist extends Document {
 // Order Types
 export interface IOrderItem {
   product: Types.ObjectId;
+  variantId?: string;
+  selectedVariant?: IProductVariant;
   name: string;
   image: string;
   quantity: number;
@@ -197,6 +216,7 @@ export interface IOrder extends Document {
   paymentId?: string;
   couponCode?: string;
   notes?: string;
+  carrier?: string;
   trackingNumber?: string;
   estimatedDelivery?: Date;
   deliveredAt?: Date;

@@ -14,4 +14,11 @@ router.get(
     dashboardController.getAdminDashboard
 );
 
+router.get(
+    '/analytics',
+    authenticate,
+    authorize(UserRole.ADMIN),
+    dashboardController.getAnalytics
+);
+
 export default router;

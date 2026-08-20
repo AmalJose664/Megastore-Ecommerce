@@ -11,6 +11,16 @@ export class DashboardController {
             data,
         });
     });
+
+    getAnalytics = asyncHandler(async (req: Request, res: Response) => {
+        const range = (req.query.range as string) || '7days';
+        const data = await dashboardService.getAnalyticsData(range);
+
+        res.json({
+            success: true,
+            data,
+        });
+    });
 }
 
 export const dashboardController = new DashboardController();

@@ -47,6 +47,17 @@ export class ReviewController {
         });
     });
 
+    checkCanReview = asyncHandler(async (req: Request, res: Response) => {
+        const userId = req.user!.userId;
+        const { productId } = req.params;
+        const result = await reviewService.canUserReviewProduct(userId, productId);
+
+        res.status(200).json({
+            success: true,
+            data: result,
+        });
+    });
+
     /**
      * PATCH /api/reviews/:id
      * Update a review

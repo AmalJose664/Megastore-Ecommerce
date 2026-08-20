@@ -17,6 +17,7 @@ router.post('/:id/cancel', validateMongoId('id'), orderController.cancelOrder);
 
 // Admin routes
 router.get('/admin/all', authorize(UserRole.ADMIN), orderController.getAllOrders);
+router.put('/bulk-status', authorize(UserRole.ADMIN), orderController.bulkUpdateStatus);
 router.patch('/:id/status', authorize(UserRole.ADMIN), validateMongoId('id'), orderController.updateOrderStatus);
 router.put('/:id/status', authorize(UserRole.ADMIN), validateMongoId('id'), orderController.updateOrderStatus);
 router.get('/admin/stats', authorize(UserRole.ADMIN), orderController.getOrderStats);

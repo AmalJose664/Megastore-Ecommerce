@@ -1,4 +1,4 @@
-import { userRepository, UserRepository } from '../repositories/user.repository';
+import { userRepository, UserRepository, UserFilters } from '../repositories/user.repository';
 import { orderRepository, OrderRepository } from '../repositories/order.repository';
 import { ApiError } from '../utils/ApiError';
 import { OrderStatus } from '../types';
@@ -12,8 +12,8 @@ export class UserService {
   /**
    * Get all users with aggregated ordersCount and totalSpent via Repository
    */
-  async getAllUsers() {
-    const users = await this.userRepo.findAllSorted();
+  async getAllUsers(filters: UserFilters = {}) {
+    const users = await this.userRepo.findWithFilters(filters);
 
     // Aggregate stats via OrderRepository
     const userStats = await this.orderRepo.getUserStatsGrouped();

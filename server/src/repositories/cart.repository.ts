@@ -3,6 +3,14 @@ import { Cart } from '../models';
 import { ICart } from '../types';
 import { Types } from 'mongoose';
 
+const getProductIdString = (prod: any): string => {
+  if (!prod) return '';
+  if (typeof prod === 'string') return prod;
+  if (prod._id) return prod._id.toString();
+  if (prod.id) return prod.id.toString();
+  return prod.toString();
+};
+
 export class CartRepository extends BaseRepository<ICart> {
   constructor() {
     super(Cart);
@@ -12,23 +20,40 @@ export class CartRepository extends BaseRepository<ICart> {
     return this.model.findOne({ user: userId }).populate('items.product', 'name price images inStock stock');
   }
 
-  async addItem(userId: string, productId: string, quantity: number, price: number): Promise<ICart> {
+  async addItem(
+    userId: string,
+    productId: string,
+    quantity: number,
+    price: number,
+    variantId?: string,
+    selectedVariant?: any
+  ): Promise<ICart> {
     let cart = await this.findByUser(userId);
+
+    const newItem = {
+      product: new Types.ObjectId(productId),
+      quantity,
+      price,
+      variantId,
+      selectedVariant,
+    };
 
     if (!cart) {
       cart = await this.model.create({
         user: userId,
-        items: [{ product: productId, quantity, price }],
+        items: [newItem],
       });
     } else {
       const existingItemIndex = cart.items.findIndex(
-        (item) => item.product.toString() === productId
+        (item) =>
+          getProductIdString(item.product) === productId &&
+          (variantId ? item.variantId === variantId : !item.variantId)
       );
 
       if (existingItemIndex > -1) {
         cart.items[existingItemIndex].quantity += quantity;
       } else {
-        cart.items.push({ product: new Types.ObjectId(productId), quantity, price });
+        cart.items.push(newItem as any);
       }
 
       await cart.save();
@@ -41,7 +66,7 @@ export class CartRepository extends BaseRepository<ICart> {
     const cart = await this.findByUser(userId);
     if (!cart) return null;
 
-    const itemIndex = cart.items.findIndex((item) => item.product.toString() === productId);
+    const itemIndex = cart.items.findIndex((item) => getProductIdString(item.product) === productId);
     if (itemIndex === -1) return null;
 
     if (quantity <= 0) {
@@ -58,7 +83,7 @@ export class CartRepository extends BaseRepository<ICart> {
     const cart = await this.findByUser(userId);
     if (!cart) return null;
 
-    cart.items = cart.items.filter((item) => item.product.toString() !== productId);
+    cart.items = cart.items.filter((item) => getProductIdString(item.product) !== productId);
     await cart.save();
 
     return cart.populate('items.product', 'name price images inStock stock');
@@ -94,7 +119,7 @@ export class CartRepository extends BaseRepository<ICart> {
     } else {
       itemsToMerge.forEach((item) => {
         const existingIndex = cart!.items.findIndex(
-          (ci) => ci.product.toString() === item.productId || (ci.product as any)._id?.toString() === item.productId
+          (ci) => getProductIdString(ci.product) === item.productId
         );
 
         if (existingIndex > -1) {
