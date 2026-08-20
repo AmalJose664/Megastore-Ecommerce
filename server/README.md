@@ -248,7 +248,16 @@ Base URL: `http://localhost:5000/api/v1`
    npm run dev
    ```
 
-5. **Build for Production**:
+5. **Build & Run with Docker (Multi-Stage Container)**:
+   ```bash
+   # Build production image
+   docker build -t megastore-backend .
+
+   # Run container on port 5000
+   docker run -p 5000:5000 --env-file .env megastore-backend
+   ```
+
+6. **Build for Local Production**:
    ```bash
    npm run build
    npm start

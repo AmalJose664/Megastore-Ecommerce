@@ -38,6 +38,7 @@ The project is architected with a decoupled 3-tier structure: a high-performance
 - **Authentication**: JSON Web Tokens (`jsonwebtoken`) with Access & Refresh Token rotation, `bcryptjs` password hashing
 - **Charts & Data Visuals**: Recharts (`^2.15`) for sales, revenue, and order analytics
 - **PDF Generation**: `jspdf` (`^4.2`) for order invoice downloads
+- **Containerization**: Docker multi-stage build image (`node:18-alpine`)
 - **Security & Utilities**: Helmet, CORS, Express Rate Limit, Express Mongo Sanitize, Morgan logging, Cookie Parser, Compression
 
 ---
