@@ -1,73 +1,88 @@
-# Welcome to your Lovable project
+# Megastore Storefront
 
-## Project info
+Customer-facing React 18 & Vite 5 e-commerce storefront for Megastore E-Commerce. It runs locally on port `4000` and in production at [https://megastore.lynfera.qzz.io](https://megastore.lynfera.qzz.io). Built with TypeScript, Tailwind CSS, shadcn/ui components, Framer Motion animations, Lucide Icons, and PDF invoice generation.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Runtime and Tooling
 
-## How can I edit this code?
+- **Framework**: React `18.3` with Vite `5.4`
+- **Language**: TypeScript `5.8`
+- **Styling**: Tailwind CSS `3.4`, shadcn/ui primitives, Framer Motion animations
+- **Icons & UI**: Lucide React, Sonner / shadcn toasts, Embla Carousel
+- **Document Export**: `jspdf` for downloadable customer order receipts
+- **Node & Package Manager**: Node.js `>=18.0.0`, npm / pnpm
 
-There are several ways of editing your application.
+## Live & Local URLs
 
-**Use Lovable**
+- **Live Production URL**: [https://megastore.lynfera.qzz.io](https://megastore.lynfera.qzz.io)
+- **Local URL**: [http://localhost:4000](http://localhost:4000)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Setup
 
-Changes made via Lovable will be committed automatically to this repo.
+From the repository root or the `user-f/` workspace directory:
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+cd user-f
+npm install
+cp .env.example .env
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Required values documented in `.env.example`:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- `VITE_BASE_URL` — Backend API endpoint (e.g., `http://localhost:5000/api`)
 
-**Use GitHub Codespaces**
+Keep all API secrets on the server and use `VITE_BASE_URL` for API communication.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Main Routes
 
-## What technologies are used for this project?
+- `/` — Homepage featuring Hero banner, featured categories, promo sections, and trending items
+- `/products` — Product catalog listing with filter controls (price range, ratings, categories, search)
+- `/product/:id` — Product detail view with gallery, stock count, and customer reviews
+- `/categories` — Catalog category browser
+- `/cart` — Interactive sliding cart drawer and cart breakdown page
+- `/checkout` — Checkout workflow with address selection and payment choice
+- `/order-success/:id` — Order confirmation screen with downloadable PDF invoice
+- `/order-failed` — Payment/order failure recovery page
+- `/orders` — Customer order history listing
+- `/orders/:id` — Detailed order tracking view
+- `/profile` — Customer account settings, saved addresses, and profile details
+- `/wishlist` — Saved favorite products wishlist
+- `/login` & `/register` — Customer account authentication pages
+- `/about` — Store information and brand story page
 
-This project is built with:
+## Commerce Behavior
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Catalog & Data Fetching**: Product catalog, category listings, reviews, and promotional slides are fetched dynamically via REST API services.
+- **Cart Logic**: Cart updates run through React Context with client-side quantity management and backend stock check validation.
+- **Coupon Engine**: Promo code verification and discount calculations are performed server-side.
+- **Checkout & Pricing**: Product prices, shipping fees, tax, and final order totals are recalculated and verified by the backend API.
+- **Order Snapshots**: Completed orders create immutable snapshots of item details, shipping address, and payment status.
+- **Invoice Export**: Downloadable PDF receipts generated on demand using `jspdf`.
 
-## How can I deploy this project?
+## Validation & Quality Gates
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Run from the `user-f/` directory:
 
-## Can I connect a custom domain to my Lovable project?
+```bash
+npx tsc --noEmit     # TypeScript type-checking
+npm run lint         # ESLint code analysis
+npm test             # Vitest test suite
+npm run build        # Production Vite bundle compilation
+```
 
-Yes, you can!
+### Verification Status:
+- Type check: **Passed (0 errors)**
+- Lint check: **Passed**
+- Vitest suite: **Passed**
+- Production bundle: **Passed**
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Remaining External Verification
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Complete live COD (Cash on Delivery) order lifecycle test.
+- Verify live Stripe/Razorpay payment gateway credentials in production.
+- Validate email order confirmation triggers.
+
+## 📞 Support & Contact
+
+For support, inquiries, or feedback, email: **renderestest446446@gmail.com**
+

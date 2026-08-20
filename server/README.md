@@ -1,384 +1,261 @@
-# E-commerce Backend API
+# E-commerce Backend API (`server/`)
 
-Production-ready e-commerce backend built with Node.js, TypeScript, Express, and MongoDB.
+Production-ready RESTful E-Commerce Backend API built with Node.js, TypeScript, Express.js, and MongoDB (Mongoose ODM).
 
-## 🚀 Features
+---
 
-- **Authentication & Authorization**: JWT-based auth with access/refresh tokens, role-based access control
-- **Product Management**: CRUD operations, filtering, search, pagination
-- **Shopping Cart**: Persistent cart, add/remove/update items
-- **Order Management**: Create orders, status tracking, order history
-- **Payment Integration**: Ready for Razorpay/Stripe integration
-- **Review System**: Product reviews and ratings
-- **Coupon System**: Discount codes with validation
-- **Admin Dashboard**: Stats, management APIs
-- **Content Management**: Testimonials, banners
+## 🚀 Key Technologies & Stack
 
-## 📋 Prerequisites
+- **Runtime & Language**: Node.js (`>=18.x`), TypeScript (`^5.9`)
+- **Web Framework**: Express.js (`^4.22`)
+- **Database & Data Modeling**: MongoDB (`>=5.0`) with Mongoose ODM (`^8.24`)
+- **Authentication & Security**:
+  - JSON Web Tokens (`jsonwebtoken`) with Access Token (short-lived 15m) & Refresh Token (7d) rotation
+  - Password hashing with `bcryptjs`
+  - Security headers using `helmet`
+  - Cross-Origin Resource Sharing (`cors`) configuration
+  - Rate limiting via `express-rate-limit`
+  - NoSQL injection protection using `express-mongo-sanitize`
+- **Payment Processing**: Stripe Checkout & Webhook handler + Razorpay key configuration
+- **Performance & Logging**: Compression via `compression`, HTTP request logging with `morgan`
 
-- Node.js >= 16.x
-- MongoDB >= 5.x
-- npm or yarn
+---
 
-## 🛠️ Installation
+## 📁 Architecture & Design Patterns
 
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd ecommerce-backend
+The backend follows a strict 4-tier Layered Architecture:
+
+```text
+server/src/
+├── config/            # Environment configurations & MongoDB connection setup
+├── models/            # Mongoose Schema definitions (User, Product, Order, Cart, etc.)
+├── repositories/      # Data access layer using Repository Pattern (base & domain repos)
+├── services/          # Core business logic processing
+├── controllers/       # HTTP request handlers & response formattings
+├── routes/            # Express endpoint definitions
+├── middlewares/       # JWT auth, RBAC authorization, error & validation middlewares
+├── utils/             # Custom ApiError class, asyncHandler wrapper, JWT helpers
+├── scripts/           # Database seeding & administrative scripts
+├── app.ts             # Express application setup & middleware pipelines
+└── server.ts          # Server initialization & graceful shutdown listeners
 ```
 
-2. **Install dependencies**
-```bash
-npm install
-```
+---
 
-3. **Setup environment variables**
-```bash
-cp .env.example .env
-```
+## 📋 Comprehensive API Route Reference
 
-Edit `.env` with your configuration:
-- MongoDB URI
-- JWT secrets
-- Admin credentials
-- Payment gateway keys (optional)
+Base URL: `http://localhost:5000/api/v1`
 
-4. **Seed the database**
-```bash
-npm run seed
-```
+### 1. Health & Server Info
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `GET` | `/` | API Welcome Endpoint | Public |
+| `GET` | `/health` | Server Health Status & Timestamp | Public |
 
-5. **Start development server**
-```bash
-npm run dev
-```
+---
 
-Server will run on `http://localhost:5000`
+### 2. Authentication & Profile (`/api/v1/auth`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/auth/register` | Register new customer account | Public |
+| `POST` | `/api/v1/auth/login` | Authenticate user/admin & issue JWT tokens | Public |
+| `POST` | `/api/v1/auth/refresh-token` | Exchange refresh token for new access token | Public |
+| `POST` | `/api/v1/auth/logout` | Logout user & invalidate refresh session | Optional Auth |
+| `POST` | `/api/v1/auth/forgot-password` | Request password reset token | Public |
+| `POST` | `/api/v1/auth/reset-password` | Reset password via token | Public |
+| `POST` | `/api/v1/auth/change-password` | Update current account password | Auth Required |
+| `GET` | `/api/v1/auth/profile` | Retrieve authenticated user profile | Auth Required |
 
-## 📁 Project Structure
+---
 
-```
-src/
-├── config/          # Configuration files
-│   ├── env.ts       # Environment variables
-│   └── database.ts  # MongoDB connection
-├── models/          # Mongoose schemas
-│   ├── User.model.ts
-│   ├── Product.model.ts
-│   ├── Cart.model.ts
-│   ├── Order.model.ts
-│   ├── Payment.model.ts
-│   ├── Review.model.ts
-│   ├── Coupon.model.ts
-│   ├── Category.model.ts
-│   ├── Address.model.ts
-│   ├── Wishlist.model.ts
-│   ├── Testimonial.model.ts
-│   ├── Banner.model.ts
-│   └── InventoryLog.model.ts
-├── repositories/    # Data access layer
-│   ├── base.repository.ts
-│   ├── user.repository.ts
-│   ├── product.repository.ts
-│   ├── cart.repository.ts
-│   └── order.repository.ts
-├── services/        # Business logic
-│   ├── auth.service.ts
-│   ├── product.service.ts
-│   ├── cart.service.ts
-│   └── order.service.ts
-├── controllers/     # Request handlers
-│   ├── auth.controller.ts
-│   ├── product.controller.ts
-│   ├── cart.controller.ts
-│   └── order.controller.ts
-├── routes/          # API routes
-│   ├── auth.routes.ts
-│   ├── product.routes.ts
-│   ├── cart.routes.ts
-│   └── order.routes.ts
-├── middlewares/     # Express middlewares
-│   ├── auth.middleware.ts
-│   ├── error.middleware.ts
-│   └── validation.middleware.ts
-├── utils/           # Helper functions
-│   ├── ApiError.ts
-│   ├── asyncHandler.ts
-│   ├── jwt.ts
-│   ├── pagination.ts
-│   └── validators.ts
-├── types/           # TypeScript types
-│   └── index.ts
-├── scripts/         # Utility scripts
-│   └── seed.ts
-├── app.ts           # Express app setup
-└── server.ts        # Server entry point
-```
+### 3. Product Catalog (`/api/v1/products`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/products` | Query products with filters, sorting, search & pagination | Public |
+| `GET` | `/api/v1/products/suggestions` | Get search auto-complete suggestions | Public |
+| `GET` | `/api/v1/products/featured` | Fetch featured catalog products | Public |
+| `GET` | `/api/v1/products/new` | Fetch newest arrival products | Public |
+| `GET` | `/api/v1/products/slug/:slug` | Retrieve product details by slug | Public |
+| `GET` | `/api/v1/products/:id` | Retrieve product details by ID | Public |
+| `POST` | `/api/v1/products` | Create a new product entry | Admin |
+| `PUT` | `/api/v1/products/:id` | Update product attributes | Admin |
+| `POST` | `/api/v1/products/bulk-delete` | Bulk delete multiple products | Admin |
+| `DELETE` | `/api/v1/products/:id` | Soft-delete product entry | Admin |
 
-## 🔑 API Endpoints
+---
 
-### Authentication
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/v1/auth/register` | Register new user | No |
-| POST | `/api/v1/auth/login` | Login user | No |
-| POST | `/api/v1/auth/refresh-token` | Refresh access token | No |
-| POST | `/api/v1/auth/logout` | Logout user | Yes |
-| POST | `/api/v1/auth/forgot-password` | Request password reset | No |
-| POST | `/api/v1/auth/reset-password` | Reset password | No |
-| POST | `/api/v1/auth/change-password` | Change password | Yes |
-| GET | `/api/v1/auth/profile` | Get user profile | Yes |
+### 4. Categories & Hierarchy (`/api/v1/categories`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/categories` | Get category tree structure | Public |
+| `GET` | `/api/v1/categories/:slug` | Get category by slug | Public |
+| `GET` | `/api/v1/categories/:id/subcategories` | Get child subcategories by parent ID | Public |
+| `POST` | `/api/v1/categories` | Create new category or subcategory | Admin |
+| `PUT` | `/api/v1/categories/:id` | Update category details | Admin |
+| `DELETE` | `/api/v1/categories/:id` | Soft-delete category | Admin |
+| `GET` | `/api/v1/categories/admin/all` | Fetch all categories (including inactive) | Admin |
+| `GET` | `/api/v1/categories/admin/paginated` | Query paginated categories with filters | Admin |
 
-### Products
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/v1/products` | List products (with filters) | No |
-| GET | `/api/v1/products/featured` | Get featured products | No |
-| GET | `/api/v1/products/new` | Get new products | No |
-| GET | `/api/v1/products/:id` | Get product by ID | No |
-| GET | `/api/v1/products/slug/:slug` | Get product by slug | No |
-| POST | `/api/v1/products` | Create product | Admin |
-| PUT | `/api/v1/products/:id` | Update product | Admin |
-| DELETE | `/api/v1/products/:id` | Delete product | Admin |
+---
 
-### Cart
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/v1/cart` | Get user cart | Yes |
-| POST | `/api/v1/cart/items` | Add item to cart | Yes |
-| PUT | `/api/v1/cart/items/:productId` | Update cart item | Yes |
-| DELETE | `/api/v1/cart/items/:productId` | Remove from cart | Yes |
-| DELETE | `/api/v1/cart` | Clear cart | Yes |
+### 5. Shopping Cart (`/api/v1/cart`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/cart` | Get authenticated user cart | Auth Required |
+| `POST` | `/api/v1/cart/items` | Add product item to cart | Auth Required |
+| `POST` | `/api/v1/cart/merge` | Merge guest cart items into user cart | Auth Required |
+| `PUT` | `/api/v1/cart/items/:productId` | Update item quantity in cart | Auth Required |
+| `DELETE` | `/api/v1/cart/items/:productId` | Remove product item from cart | Auth Required |
+| `DELETE` | `/api/v1/cart` | Empty all cart items | Auth Required |
 
-### Orders
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/v1/orders` | Create order | Yes |
-| GET | `/api/v1/orders/my-orders` | Get user orders | Yes |
-| GET | `/api/v1/orders/:id` | Get order details | Yes |
-| POST | `/api/v1/orders/:id/cancel` | Cancel order | Yes |
-| GET | `/api/v1/orders/admin/all` | Get all orders | Admin |
-| PATCH | `/api/v1/orders/:id/status` | Update order status | Admin |
-| GET | `/api/v1/orders/admin/stats` | Get order statistics | Admin |
+---
 
-## 📝 Request/Response Examples
+### 6. Order Management (`/api/v1/orders`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/orders` | Place new order with cart items | Auth Required |
+| `GET` | `/api/v1/orders/my-orders` | Get user order history | Auth Required |
+| `GET` | `/api/v1/orders/:id` | Get order details by ID | Auth Required |
+| `POST` | `/api/v1/orders/:id/cancel` | Request order cancellation | Auth Required |
+| `GET` | `/api/v1/orders/admin/all` | Retrieve all customer orders | Admin |
+| `PUT` | `/api/v1/orders/bulk-status` | Bulk update status across orders | Admin |
+| `PATCH` / `PUT` | `/api/v1/orders/:id/status` | Update single order lifecycle status | Admin |
+| `GET` | `/api/v1/orders/admin/stats` | Order analytics and revenue totals | Admin |
 
-### Register User
-```bash
-POST /api/v1/auth/register
-Content-Type: application/json
+---
 
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john@example.com",
-  "password": "Password@123",
-  "phone": "9876543210"
-}
-```
+### 7. Coupons & Promotions (`/api/v1/coupons`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/coupons` | Get active public coupons | Optional Auth |
+| `POST` | `/api/v1/coupons/validate` | Validate coupon code against subtotal | Auth Required |
+| `GET` | `/api/v1/coupons/all` | List all coupons (including inactive) | Admin |
+| `GET` | `/api/v1/coupons/:id` | Get coupon details by ID | Admin |
+| `POST` | `/api/v1/coupons` | Create new discount coupon | Admin |
+| `PUT` | `/api/v1/coupons/:id` | Update coupon rule | Admin |
+| `DELETE` | `/api/v1/coupons/:id` | Delete coupon rule | Admin |
 
-Response:
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "user": {
-      "_id": "...",
-      "firstName": "John",
-      "lastName": "Doe",
-      "email": "john@example.com",
-      "role": "user"
-    },
-    "tokens": {
-      "accessToken": "...",
-      "refreshToken": "..."
-    }
-  }
-}
-```
+---
 
-### Get Products with Filters
-```bash
-GET /api/v1/products?category=electronics&minPrice=1000&maxPrice=5000&page=1&limit=20
-```
+### 8. Address Management (`/api/v1/addresses`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/addresses` | Get user saved delivery addresses | Auth Required |
+| `GET` | `/api/v1/addresses/:id` | Get address details by ID | Auth Required |
+| `POST` | `/api/v1/addresses` | Save new shipping address | Auth Required |
+| `PUT` | `/api/v1/addresses/:id` | Update shipping address details | Auth Required |
+| `DELETE` | `/api/v1/addresses/:id` | Remove shipping address | Auth Required |
+| `PATCH` | `/api/v1/addresses/:id/default` | Set primary delivery address | Auth Required |
 
-### Add to Cart
-```bash
-POST /api/v1/cart/items
-Authorization: Bearer <access_token>
-Content-Type: application/json
+---
 
-{
-  "productId": "...",
-  "quantity": 2
-}
-```
+### 9. Customer Wishlist (`/api/v1/wishlist`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/wishlist` | Get user saved wishlist items | Auth Required |
+| `POST` | `/api/v1/wishlist/add` | Add product to wishlist | Auth Required |
+| `DELETE` | `/api/v1/wishlist/remove/:productId` | Remove product from wishlist | Auth Required |
+| `POST` | `/api/v1/wishlist/toggle` | Toggle product wishlist state | Auth Required |
+| `GET` | `/api/v1/wishlist/check/:productId` | Check if product is in wishlist | Auth Required |
 
-### Create Order
-```bash
-POST /api/v1/orders
-Authorization: Bearer <access_token>
-Content-Type: application/json
+---
 
-{
-  "shippingAddress": {
-    "fullName": "John Doe",
-    "phone": "9876543210",
-    "addressLine1": "123 Main St",
-    "city": "Mumbai",
-    "state": "Maharashtra",
-    "postalCode": "400001",
-    "country": "India"
-  },
-  "paymentMethod": "card",
-  "notes": "Please deliver before 6 PM"
-}
-```
+### 10. Product Reviews (`/api/v1/reviews`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/reviews/product/:productId` | List reviews for product | Public |
+| `POST` | `/api/v1/reviews` | Submit product review | Auth Required |
+| `GET` | `/api/v1/reviews/my-reviews` | Get user submitted reviews | Auth Required |
+| `GET` | `/api/v1/reviews/can-review/:productId` | Verify review eligibility | Auth Required |
+| `PATCH` / `DELETE` | `/api/v1/reviews/:id` | Update or remove review | Auth Required |
+| `PATCH` | `/api/v1/reviews/:id/approve` | Approve customer review | Admin |
 
-## 🔐 Authentication
+---
 
-The API uses JWT tokens for authentication:
+### 11. Dashboard & Analytics (`/api/v1/dashboard`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/dashboard/admin` | Executive dashboard overview metrics | Admin |
+| `GET` | `/api/v1/dashboard/analytics` | Sales analytics & revenue reports | Admin |
 
-1. **Access Token**: Short-lived (15 minutes), used for API requests
-2. **Refresh Token**: Long-lived (7 days), used to get new access tokens
+---
 
-Include the access token in the Authorization header:
-```
-Authorization: Bearer <access_token>
-```
+### 12. User Management (`/api/v1/users`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/users` | List registered customer users | Admin |
+| `GET` | `/api/v1/users/:id` | Get user profile details by ID | Admin |
+| `PATCH` / `PUT` | `/api/v1/users/:id/status` | Activate or suspend user account | Admin |
 
-## 🎯 Query Parameters
+---
 
-### Product Filtering
-- `category`: Filter by category ID
-- `subcategory`: Filter by subcategory ID
-- `minPrice`: Minimum price
-- `maxPrice`: Maximum price
-- `minRating`: Minimum rating
-- `featured`: Boolean (true/false)
-- `isNew`: Boolean (true/false)
-- `inStock`: Boolean (true/false)
-- `search`: Search in name, description, tags
-- `tags`: Comma-separated tags
+### 13. Payments & Webhooks (`/api/v1/payments`)
+| Method | Endpoint | Description | Access |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/payments/webhook` | Stripe payment event webhook listener | Public (Raw Body) |
+| `POST` | `/api/v1/payments/create-checkout-session` | Create Stripe Checkout payment session | Auth Required |
 
-### Pagination
-- `page`: Page number (default: 1)
-- `limit`: Items per page (default: 20, max: 100)
-- `sort`: Sort field (default: createdAt)
-- `order`: Sort order (asc/desc, default: desc)
+---
 
-## 🏗️ Architecture
+### 14. CMS Content Management
+| Endpoint Group | Available Operations | Access |
+| --- | --- | --- |
+| `/api/v1/hero` | `GET /` (Public), `GET /all`, `POST /`, `PUT /:id`, `DELETE /:id`, `PATCH /:id/activate`, `PATCH /:id/deactivate` | Admin (except public GET) |
+| `/api/v1/banner-sections` | `GET /active`, `GET /:id` (Public), `GET /`, `POST /`, `PUT /:id`, `DELETE /:id` | Admin (except public GET) |
+| `/api/v1/promo` | `GET /` (Public), `GET /all`, `POST /`, `PUT /:id`, `DELETE /:id`, `PATCH /:id/activate` | Admin (except public GET) |
+| `/api/v1/testimonials` | `GET /` (Public), `POST /`, `PUT /:id`, `DELETE /:id` | Admin (except public GET) |
+| `/api/v1/activities` | `GET /` — System audit log feed | Admin |
+| `/api/v1/settings` | `GET /` (Public), `PUT /` (Update global settings) | Admin (PUT) / Public (GET) |
 
-### Layered Architecture
-1. **Routes**: Define API endpoints
-2. **Controllers**: Handle HTTP requests/responses
-3. **Services**: Business logic
-4. **Repositories**: Database operations
-5. **Models**: MongoDB schemas
+---
 
-### Design Patterns
-- Repository Pattern for data access
-- Service Layer for business logic
-- Dependency Injection
-- Error handling with custom ApiError class
-- Async wrapper for route handlers
+## 📊 Database Models (MongoDB Mongoose)
 
-## 🔒 Security Features
+- **`User`**: First/last name, email, hashed password, role (`user` | `admin`), status (`active` | `inactive`), refresh tokens.
+- **`Product`**: Title, slug, description, price, original price, SKU, stock count, category, subcategory, images, ratings, tags, featured status.
+- **`Category`**: Name, slug, description, image, parent category ID.
+- **`Cart`**: User reference, item array (`productId`, quantity, unit price).
+- **`Order`**: Order number, user reference, item snapshots, shipping address, subtotal, discount, tax, total, order status (`Pending`, `Processing`, `Shipped`, `Delivered`, `Cancelled`), payment status.
+- **`Address`**: Full name, street address, city, state, postal code, country, phone, default flag.
+- **`Coupon`**: Coupon code, discount type (`percentage` | `flat`), discount value, minimum order spend, max usage, expiry date.
+- **`Review`**: Product reference, user reference, rating (1-5), comment, approval status.
+- **`Wishlist`**: User reference, array of saved product IDs.
+- **`Hero`, `Banner`, `Promo`, `Testimonial`, `Activity`, `Setting`**: Dynamic CMS and audit ledger schemas.
 
-- Helmet for security headers
-- CORS configuration
-- Rate limiting
-- MongoDB injection sanitization
-- Password hashing with bcrypt
-- JWT token validation
-- Input validation
-- XSS protection
+---
 
-## 🧪 Testing
+## 🛠️ Setup & Execution
 
-```bash
-npm test
-```
+1. **Install Dependencies**:
+   ```bash
+   cd server
+   npm install
+   ```
 
-## 📦 Build for Production
+2. **Configure Environment Variables**:
+   ```bash
+   cp .env.example .env
+   ```
+   Set `MONGODB_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, and `PORT`.
 
-```bash
-npm run build
-npm start
-```
+3. **Seed Database**:
+   ```bash
+   npm run seed
+   ```
 
-## 🌍 Environment Variables
+4. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
 
-See `.env.example` for all available environment variables.
+5. **Build for Production**:
+   ```bash
+   npm run build
+   npm start
+   ```
 
-Key variables:
-- `NODE_ENV`: development/production
-- `PORT`: Server port
-- `MONGODB_URI`: MongoDB connection string
-- `JWT_ACCESS_SECRET`: Secret for access tokens
-- `JWT_REFRESH_SECRET`: Secret for refresh tokens
-- `ADMIN_EMAIL`: Admin user email
-- `ADMIN_PASSWORD`: Admin user password
+---
 
-## 📊 Database Schema
+## 📞 Support & Contact
 
-### User
-- firstName, lastName, email, password
-- role (user/admin)
-- phone, avatar
-- Email verification, active status
-- Refresh token, reset password token
-
-### Product
-- name, slug, description
-- price, originalPrice
-- category, subcategory
-- images, thumbnail, SKU
-- stock, rating, reviews
-- featured, isNew, tags
-
-### Order
-- orderNumber, user
-- items (product, quantity, price)
-- shipping address
-- subtotal, discount, shipping, tax, total
-- status, payment method/status
-- tracking, delivery dates
-
-### Cart
-- user, items (product, quantity, price)
-- totalItems, subtotal
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## 📄 License
-
-ISC
-
-## 👥 Default Credentials
-
-After running seed script:
-
-**Admin**
-- Email: admin@ecommerce.com
-- Password: Admin@123456
-
-**User**
-- Email: user@example.com
-- Password: User@123456
-
-## 🐛 Known Issues
-
-None currently
-
-## 📞 Support
-
-For support, email: support@example.com
+For support, inquiries, or feedback, email: **renderestest446446@gmail.com**
