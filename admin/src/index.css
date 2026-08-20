@@ -129,7 +129,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased text-xs sm:text-sm;
     font-family: 'Inter', system-ui, sans-serif;
   }
 
@@ -150,7 +150,7 @@
   }
 
   .stat-card {
-    @apply card-elevated p-6 relative overflow-hidden;
+    @apply card-elevated p-5 relative overflow-hidden;
   }
 
   .stat-card::before {
@@ -160,11 +160,11 @@
   }
 
   .table-header {
-    @apply bg-muted/30 text-muted-foreground text-xs uppercase tracking-wider font-medium;
+    @apply bg-muted/30 text-muted-foreground text-[11px] uppercase tracking-wider font-medium;
   }
 
   .sidebar-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200;
+    @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200;
     @apply text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent;
   }
 
@@ -173,11 +173,11 @@
   }
 
   .badge-status {
-    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium;
   }
 
   .input-search {
-    @apply bg-muted/50 border-0 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all duration-200;
+    @apply bg-muted/50 border-0 focus:bg-background focus:ring-2 focus:ring-primary/20 text-xs transition-all duration-200;
   }
 
   .animate-fade-in {

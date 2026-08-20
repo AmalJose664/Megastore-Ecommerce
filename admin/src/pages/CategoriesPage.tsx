@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, MoreVertical, FolderTree } from 'lucide-react';
-import { Category, CategoryNode } from '@/types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, Edit, Trash2, MoreVertical, FolderTree, Filter, ArrowUpDown } from 'lucide-react';
+import { Category, CategoryNode, CategoryQueryParams } from '@/types';
 import { categoriesService } from '@/services/categoriesService';
 import PageHeader from '@/components/ui/PageHeader';
 import DataTable from '@/components/ui/DataTable';
 import StatusBadge from '@/components/ui/StatusBadge';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -32,16 +28,28 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-
 import { CategoryForm } from '@/components/categories/CategoryForm';
 
 export default function CategoriesPage() {
   const { toast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [allCategoriesList, setAllCategoriesList] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editCategory, setEditCategory] = useState<Category | null>(null);
   const [deleteCategory, setDeleteCategory] = useState<Category | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  // Search & Filter & Pagination States
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [level, setLevel] = useState<string>('all');
+  const [status, setStatus] = useState<string>('all');
+  const [sortField, setSortField] = useState<string>('displayOrder');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -51,15 +59,23 @@ export default function CategoriesPage() {
     isActive: true,
   });
 
+  // Debounce search input
   useEffect(() => {
-    fetchCategories();
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Load all categories for select dropdown in forms
+  useEffect(() => {
+    loadAllCategories();
   }, []);
 
-  const fetchCategories = async () => {
-    setIsLoading(true);
+  const loadAllCategories = async () => {
     const tree = await categoriesService.getCategories();
     if (tree) {
-      // Flatten the tree for the DataTable
       const flattened: Category[] = [];
       const flatten = (nodes: CategoryNode[]) => {
         nodes.forEach(node => {
@@ -71,10 +87,47 @@ export default function CategoriesPage() {
         });
       };
       flatten(tree);
-      setCategories(flattened);
+      setAllCategoriesList(flattened);
     }
-    setIsLoading(false);
   };
+
+  // Fetch paginated categories from API
+  const fetchPaginatedCategories = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const params: CategoryQueryParams = {
+        page,
+        limit,
+        sort: sortField,
+        order: sortOrder,
+        search: debouncedSearch || undefined,
+        level: level !== 'all' ? (level as any) : undefined,
+        status: status !== 'all' ? (status as any) : undefined,
+      };
+
+      const response = await categoriesService.getPaginatedCategories(params);
+      if (response?.data) {
+        setCategories(response.data);
+        if (response.pagination) {
+          setTotalPages(response.pagination.pages);
+          setTotalItems(response.pagination.total);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch categories',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [page, limit, sortField, sortOrder, debouncedSearch, level, status, toast]);
+
+  useEffect(() => {
+    fetchPaginatedCategories();
+  }, [fetchPaginatedCategories]);
 
   const resetForm = () => {
     setFormData({
@@ -117,12 +170,14 @@ export default function CategoriesPage() {
       parentCategory: formData.parentCategory === 'root' || !formData.parentCategory ? null : formData.parentCategory,
     };
 
-    if (editCategory) {
-      const updated = await categoriesService.updateCategory(editCategory._id, payload);
+    const catId = editCategory?._id || editCategory?.id;
+    if (editCategory && catId) {
+      const updated = await categoriesService.updateCategory(catId, payload);
       if (updated) {
         toast({ title: 'Category updated', description: `${formData.name} has been updated.` });
         setEditCategory(null);
-        fetchCategories();
+        fetchPaginatedCategories();
+        loadAllCategories();
       } else {
         toast({ title: 'Error', description: 'Failed to update category', variant: 'destructive' });
       }
@@ -131,7 +186,8 @@ export default function CategoriesPage() {
       if (created) {
         toast({ title: 'Category created', description: `${formData.name} has been created.` });
         setIsCreateOpen(false);
-        fetchCategories();
+        fetchPaginatedCategories();
+        loadAllCategories();
       } else {
         toast({ title: 'Error', description: 'Failed to create category', variant: 'destructive' });
       }
@@ -141,10 +197,13 @@ export default function CategoriesPage() {
 
   const handleDelete = async () => {
     if (deleteCategory) {
-      const success = await categoriesService.deleteCategory(deleteCategory._id);
+      const catId = deleteCategory._id || deleteCategory.id;
+      if (!catId) return;
+      const success = await categoriesService.deleteCategory(catId);
       if (success) {
         toast({ title: 'Category deleted', description: `${deleteCategory.name} has been deleted.` });
-        fetchCategories();
+        fetchPaginatedCategories();
+        loadAllCategories();
       } else {
         toast({
           title: 'Error',
@@ -176,7 +235,10 @@ export default function CategoriesPage() {
       key: 'parent',
       header: 'Parent',
       render: (category: Category) => {
-        const parent = categories.find(c => c._id === category.parentCategory);
+        const parentId = typeof category.parentCategory === 'object' && category.parentCategory
+          ? (category.parentCategory as any)._id || (category.parentCategory as any).id
+          : category.parentCategory;
+        const parent = allCategoriesList.find(c => (c._id || c.id) === parentId);
         return <span className="text-sm">{parent ? parent.name : 'Root'}</span>;
       },
     },
@@ -184,7 +246,7 @@ export default function CategoriesPage() {
       key: 'displayOrder',
       header: 'Order',
       render: (category: Category) => (
-        <span className="text-sm">{category.displayOrder}</span>
+        <span className="text-sm font-medium">{category.displayOrder}</span>
       ),
     },
     {
@@ -221,11 +283,68 @@ export default function CategoriesPage() {
     },
   ];
 
+  // Filter controls bar
+  const filterControls = (
+    <div className="flex flex-wrap gap-2 items-center">
+      {/* Level Filter */}
+      <Select
+        value={level}
+        onValueChange={(val) => { setLevel(val); setPage(1); }}
+      >
+        <SelectTrigger className="w-[140px] h-9 text-xs">
+          <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+          <SelectValue placeholder="Category Level" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Levels</SelectItem>
+          <SelectItem value="root">Root Categories</SelectItem>
+          <SelectItem value="subcategory">Subcategories</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {/* Status Filter */}
+      <Select
+        value={status}
+        onValueChange={(val) => { setStatus(val); setPage(1); }}
+      >
+        <SelectTrigger className="w-[130px] h-9 text-xs">
+          <SelectValue placeholder="Status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Status</SelectItem>
+          <SelectItem value="active">Active</SelectItem>
+          <SelectItem value="inactive">Inactive</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {/* Sort Options */}
+      <Select
+        value={`${sortField}-${sortOrder}`}
+        onValueChange={(val) => {
+          const [field, order] = val.split('-');
+          setSortField(field);
+          setSortOrder(order as 'asc' | 'desc');
+          setPage(1);
+        }}
+      >
+        <SelectTrigger className="w-[150px] h-9 text-xs">
+          <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+          <SelectValue placeholder="Sort By" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="displayOrder-asc">Display Order</SelectItem>
+          <SelectItem value="name-asc">Name: A to Z</SelectItem>
+          <SelectItem value="createdAt-desc">Newest First</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Categories"
-        description="Organize your products into categories"
+        description="Organize your products into categories with real-time search & filters"
         actions={
           <Button onClick={openCreate}>
             <Plus className="w-4 h-4 mr-2" />
@@ -237,10 +356,18 @@ export default function CategoriesPage() {
       <DataTable
         data={categories}
         columns={columns}
-        rowKey="_id"
-        searchKey="name"
-        searchPlaceholder="Search categories..."
-        emptyMessage={isLoading ? "Loading categories..." : "No categories found"}
+        serverSide={true}
+        page={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={limit}
+        onPageChange={setPage}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search category name or slug..."
+        loading={isLoading}
+        filterControls={filterControls}
+        emptyMessage="No categories found matching your search or filters."
       />
 
       {/* Create Dialog */}
@@ -252,7 +379,7 @@ export default function CategoriesPage() {
           <CategoryForm
             formData={formData}
             setFormData={setFormData}
-            categories={categories}
+            categories={allCategoriesList}
             editCategory={null}
           />
           <DialogFooter>
@@ -271,7 +398,7 @@ export default function CategoriesPage() {
           <CategoryForm
             formData={formData}
             setFormData={setFormData}
-            categories={categories}
+            categories={allCategoriesList}
             editCategory={editCategory}
           />
           <DialogFooter>

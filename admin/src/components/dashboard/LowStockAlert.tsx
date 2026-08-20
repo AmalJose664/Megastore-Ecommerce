@@ -18,32 +18,32 @@ export default function LowStockAlert({ products }: LowStockAlertProps) {
 
   return (
     <div className="card-elevated animate-slide-up">
-      <div className="p-6 border-b border-border">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-warning" />
-          <h2 className="text-lg font-semibold">Low Stock Alerts</h2>
+          <AlertTriangle className="w-4 h-4 text-warning" />
+          <h2 className="text-sm font-semibold text-foreground">Low Stock Alerts</h2>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">Products running low on inventory</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Products running low on inventory</p>
       </div>
-      <div className="p-4 space-y-4">
+      <div className="p-3 space-y-3">
         {products.map((product) => (
           <div
             key={product._id || product.id}
-            className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+            className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors"
           >
             <img
               src={product.images?.[0] || 'https://via.placeholder.com/150'}
               alt={product.name}
-              className="w-12 h-12 rounded-lg object-cover"
+              className="w-10 h-10 rounded-lg object-cover"
             />
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{product.name}</p>
+              <p className="font-medium text-xs truncate">{product.name}</p>
               <div className="flex items-center gap-2 mt-1">
                 <Progress
                   value={Math.min((product.stock / 10) * 100, 100)}
                   className="h-1.5 flex-1"
                 />
-                <span className={`text-xs font-medium ${product.stock === 0 ? 'text-destructive' : 'text-warning'}`}>
+                <span className={`text-[11px] font-medium ${product.stock === 0 ? 'text-destructive' : 'text-warning'}`}>
                   {product.stock} left
                 </span>
               </div>
@@ -51,6 +51,7 @@ export default function LowStockAlert({ products }: LowStockAlertProps) {
             <Button
               variant="outline"
               size="sm"
+              className="text-xs h-7 px-2.5"
               onClick={() => navigate(`/products/${product._id || product.id}/edit`)}
             >
               Restock

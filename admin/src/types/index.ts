@@ -48,6 +48,10 @@ export interface Order {
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'completed';
   shippingAddress: Address;
   notes?: string;
+  carrier?: string;
+  trackingNumber?: string;
+  estimatedDelivery?: string;
+  deliveredAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -76,6 +80,7 @@ export interface Address {
 
 export interface Category {
   _id: string;
+  id?: string;
   name: string;
   slug: string;
   description: string;
@@ -235,6 +240,17 @@ export interface ProductSpecifications {
   [key: string]: string;
 }
 
+export interface IProductVariant {
+  _id?: string;
+  sku?: string;
+  attributes: Record<string, string>;
+  price?: number;
+  originalPrice?: number;
+  stock: number;
+  image?: string;
+  inStock?: boolean;
+}
+
 export interface ApiProduct {
   _id?: string;
   id?: string;
@@ -253,6 +269,8 @@ export interface ApiProduct {
   rating: number;
   reviewCount: number;
   inStock: boolean;
+  hasVariants?: boolean;
+  variants?: IProductVariant[];
   featured: boolean;
   isNewProduct: boolean;
   tags: string[];
@@ -292,6 +310,8 @@ export interface CreateProductRequest {
   sku: string;
   stock: number;
   lowStockThreshold?: number;
+  hasVariants?: boolean;
+  variants?: IProductVariant[];
   featured?: boolean;
   isNewProduct?: boolean;
   tags?: string[];
@@ -303,6 +323,17 @@ export interface CreateProductRequest {
 export interface UpdateProductRequest {
   name?: string;
   description?: string;
+  price?: number;
+  originalPrice?: number;
+  category?: string;
+  subcategory?: string;
+  images?: string[];
+  thumbnail?: string;
+  sku?: string;
+  stock?: number;
+  lowStockThreshold?: number;
+  hasVariants?: boolean;
+  variants?: IProductVariant[];
   price?: number;
   originalPrice?: number;
   category?: string;
@@ -330,12 +361,58 @@ export interface ProductQueryParams {
   featured?: boolean;
   isNew?: boolean;
   inStock?: boolean;
+  stockStatus?: 'all' | 'in_stock' | 'low_stock' | 'out_of_stock';
+  status?: 'all' | 'active' | 'archived';
   search?: string;
   tags?: string;
   page?: number;
   limit?: number;
   sort?: string;
   order?: 'asc' | 'desc';
+}
+
+export interface OrderQueryParams {
+  search?: string;
+  status?: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+}
+
+export interface OrderListResponse {
+  success: boolean;
+  data: Order[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export interface CategoryQueryParams {
+  search?: string;
+  level?: 'all' | 'root' | 'subcategory';
+  status?: 'all' | 'active' | 'inactive';
+  parentCategory?: string;
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+}
+
+export interface CategoryListResponse {
+  success: boolean;
+  data: Category[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
 }
 
 export interface FeaturedProductsQuery {

@@ -4,12 +4,46 @@ import {
     Category,
     CategoryNode,
     CategoryDetails,
-    ApiResponse
+    ApiResponse,
+    CategoryQueryParams,
+    CategoryListResponse
 } from '@/types';
 
 const API_BASE_URL = CONFIG.API_BASE_URL;
 
 class CategoriesService {
+    private buildQuery(params: CategoryQueryParams): string {
+        const query = new URLSearchParams();
+
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                query.append(key, value.toString());
+            }
+        });
+
+        return query.toString() ? `?${query.toString()}` : '';
+    }
+
+    // GET /api/v1/categories/admin/paginated (Get Paginated Categories for Admin)
+    async getPaginatedCategories(params: CategoryQueryParams = {}): Promise<CategoryListResponse | null> {
+        try {
+            const queryString = this.buildQuery(params);
+            const { data, error } = await apiHandler.handleRequest<CategoryListResponse>(
+                `${API_BASE_URL}/categories/admin/paginated${queryString}`
+            );
+
+            if (error) {
+                console.error('Get paginated categories error:', error.message);
+                return null;
+            }
+
+            return data || null;
+        } catch (error) {
+            console.error('Get paginated categories error:', error);
+            return null;
+        }
+    }
+
     // GET /api/v1/categories (Get Category Tree)
     async getCategories(): Promise<CategoryNode[] | null> {
         try {

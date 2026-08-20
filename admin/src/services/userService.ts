@@ -11,10 +11,17 @@ export interface UserDetailsResponse {
 
 class UserService {
   // GET /api/v1/users (Get All Users)
-  async getUsers(): Promise<User[] | null> {
+  async getUsers(params: { search?: string; status?: string; role?: string } = {}): Promise<User[] | null> {
     try {
+      const query = new URLSearchParams();
+      if (params.search) query.append('search', params.search);
+      if (params.status && params.status !== 'all') query.append('status', params.status);
+      if (params.role && params.role !== 'all') query.append('role', params.role);
+
+      const queryString = query.toString() ? `?${query.toString()}` : '';
+
       const { data, error } = await apiHandler.handleRequest<ApiResponse<User[]>>(
-        `${API_BASE_URL}/users`
+        `${API_BASE_URL}/users${queryString}`
       );
 
       if (error) {

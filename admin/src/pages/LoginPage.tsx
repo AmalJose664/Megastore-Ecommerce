@@ -75,14 +75,14 @@ export default function LoginPage() {
             <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
               <Leaf className="w-7 h-7 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-            <p className="text-muted-foreground mt-2">Sign in to your admin account</p>
+            <h1 className="text-xl font-bold text-foreground">Welcome back</h1>
+            <p className="text-xs text-muted-foreground mt-1">Sign in to your admin account</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -92,12 +92,12 @@ export default function LoginPage() {
                 className={errors.email ? 'border-destructive' : ''}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
+                <p className="text-xs text-destructive">{errors.email}</p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-xs">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -116,14 +116,14 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password}</p>
+                <p className="text-xs text-destructive">{errors.password}</p>
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full text-xs h-9" disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
                   Signing in...
                 </>
               ) : (
@@ -133,8 +133,8 @@ export default function LoginPage() {
           </form>
 
           {/* Test credentials info */}
-          <div className="p-4 rounded-lg bg-muted/50 border border-border">
-            <p className="text-sm text-muted-foreground text-center">
+          <div className="p-3 rounded-lg bg-muted/50 border border-border">
+            <p className="text-xs text-muted-foreground text-center">
               <span className="font-medium">Test Credentials:</span>
               <br />
               Email: admin@ecommerce.com
@@ -148,13 +148,13 @@ export default function LoginPage() {
       {/* Right side - Decorative */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary/10 via-primary/5 to-background items-center justify-center p-8">
         <div className="max-w-lg text-center">
-          <div className="w-64 h-64 mx-auto mb-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Leaf className="w-32 h-32 text-primary/40" />
+          <div className="w-48 h-48 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+            <Leaf className="w-24 h-24 text-primary/40" />
           </div>
-          <h2 className="text-3xl font-bold text-foreground mb-4">
+          <h2 className="text-xl font-bold text-foreground mb-2">
             Manage your store with ease
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             A beautiful, intuitive admin dashboard designed to help you manage products, orders, and customers efficiently.
           </p>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,17 @@ interface DataTableProps<T> {
   onRowClick?: (item: T) => void;
   emptyMessage?: string;
   rowKey?: keyof T;
+
+  // Server-side props
+  serverSide?: boolean;
+  page?: number;
+  totalPages?: number;
+  totalItems?: number;
+  onPageChange?: (page: number) => void;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  loading?: boolean;
+  filterControls?: React.ReactNode;
 }
 
 export default function DataTable<T>({
@@ -31,21 +42,63 @@ export default function DataTable<T>({
   onRowClick,
   emptyMessage = 'No data found',
   rowKey,
+  serverSide = false,
+  page: serverPage = 1,
+  totalPages: serverTotalPages = 1,
+  totalItems: serverTotalItems,
+  onPageChange,
+  searchValue,
+  onSearchChange,
+  loading = false,
+  filterControls,
 }: DataTableProps<T>) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  const [internalCurrentPage, setInternalCurrentPage] = useState(1);
 
-  // Filter data based on search
-  const filteredData = searchKey
+  const isServer = serverSide;
+
+  // Search query
+  const query = isServer ? (searchValue ?? '') : internalSearchQuery;
+  const setQuery = (val: string) => {
+    if (isServer) {
+      onSearchChange?.(val);
+    } else {
+      setInternalSearchQuery(val);
+      setInternalCurrentPage(1);
+    }
+  };
+
+  // Pagination values
+  const activePage = isServer ? serverPage : internalCurrentPage;
+  const setActivePage = (p: number) => {
+    if (isServer) {
+      onPageChange?.(p);
+    } else {
+      setInternalCurrentPage(p);
+    }
+  };
+
+  // Client-side calculations
+  const filteredData = (!isServer && searchKey)
     ? data.filter((item) =>
-      String(item[searchKey]).toLowerCase().includes(searchQuery.toLowerCase())
+      String(item[searchKey] ?? '').toLowerCase().includes(query.toLowerCase())
     )
     : data;
 
-  // Paginate data
-  const totalPages = Math.ceil(filteredData.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const paginatedData = filteredData.slice(startIndex, startIndex + pageSize);
+  const calculatedTotalPages = isServer
+    ? serverTotalPages
+    : Math.ceil(filteredData.length / pageSize);
+
+  const displayData = isServer
+    ? data
+    : filteredData.slice((activePage - 1) * pageSize, activePage * pageSize);
+
+  const totalResults = isServer
+    ? (serverTotalItems ?? data.length)
+    : filteredData.length;
+
+  const startIndex = Math.min((activePage - 1) * pageSize + 1, totalResults);
+  const endIndex = Math.min(activePage * pageSize, totalResults);
 
   // Helper to get row key
   const getRowKey = (item: T): string => {
@@ -56,46 +109,55 @@ export default function DataTable<T>({
 
   return (
     <div className="card-elevated overflow-hidden">
-      {/* Search */}
-      {searchKey && (
-        <div className="p-4 border-b border-border">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="pl-9 input-search"
-            />
-          </div>
+      {/* Header controls (Search & Filters) */}
+      {(searchKey || isServer || filterControls) && (
+        <div className="p-4 border-b border-border flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+          {(searchKey || isServer) && (
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={searchPlaceholder}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-9 input-search"
+              />
+            </div>
+          )}
+          {filterControls && (
+            <div className="flex flex-wrap gap-2 items-center">
+              {filterControls}
+            </div>
+          )}
         </div>
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto relative min-h-[200px]">
+        {loading && (
+          <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] z-10 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        )}
+        <table className="w-full text-xs">
           <thead>
             <tr className="table-header">
               {columns.map((column) => (
-                <th key={column.key} className={cn("text-left p-4", column.className)}>
+                <th key={column.key} className={cn("text-left p-3", column.className)}>
                   {column.header}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {paginatedData.length === 0 ? (
+            {displayData.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="p-8 text-center text-muted-foreground">
+                <td colSpan={columns.length} className="p-6 text-center text-xs text-muted-foreground">
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              paginatedData.map((item) => (
+              displayData.map((item) => (
                 <tr
                   key={getRowKey(item)}
                   className={cn(
@@ -105,7 +167,7 @@ export default function DataTable<T>({
                   onClick={() => onRowClick?.(item)}
                 >
                   {columns.map((column) => (
-                    <td key={column.key} className={cn("p-4", column.className)}>
+                    <td key={column.key} className={cn("p-3", column.className)}>
                       {column.render
                         ? column.render(item)
                         : String((item as Record<string, unknown>)[column.key] ?? '')}
@@ -119,31 +181,33 @@ export default function DataTable<T>({
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="p-4 border-t border-border flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing {startIndex + 1} to {Math.min(startIndex + pageSize, filteredData.length)} of{' '}
-            {filteredData.length} results
+      {calculatedTotalPages > 1 && (
+        <div className="p-3 border-t border-border flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            Showing {totalResults === 0 ? 0 : startIndex} to {endIndex} of{' '}
+            {totalResults} results
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              className="h-7 w-7"
+              onClick={() => setActivePage(Math.max(1, activePage - 1))}
+              disabled={activePage === 1 || loading}
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </Button>
-            <span className="text-sm font-medium px-2">
-              {currentPage} / {totalPages}
+            <span className="text-xs font-medium px-2">
+              {activePage} / {calculatedTotalPages}
             </span>
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              className="h-7 w-7"
+              onClick={() => setActivePage(Math.min(calculatedTotalPages, activePage + 1))}
+              disabled={activePage >= calculatedTotalPages || loading}
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>

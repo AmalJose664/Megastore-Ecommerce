@@ -17,10 +17,10 @@ interface SalesChartProps {
 export default function SalesChart({ data }: SalesChartProps) {
     return (
         <div className="card-elevated p-6 animate-slide-up h-[400px]">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h2 className="text-lg font-semibold">Sales Overview</h2>
-                    <p className="text-sm text-muted-foreground">Revenue trends for the last 7 days</p>
+                    <h2 className="text-sm font-semibold text-foreground">Sales Overview</h2>
+                    <p className="text-xs text-muted-foreground">Revenue trends for the last 7 days</p>
                 </div>
             </div>
 

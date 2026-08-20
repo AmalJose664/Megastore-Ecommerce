@@ -78,32 +78,32 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-80 p-0">
-            <div className="p-4 border-b border-border">
-              <h3 className="font-semibold">Notifications</h3>
-              <p className="text-sm text-muted-foreground">{unreadCount} unread messages</p>
+          <PopoverContent align="end" className="w-80 p-0 text-xs">
+            <div className="p-3 border-b border-border">
+              <h3 className="font-semibold text-xs">Notifications</h3>
+              <p className="text-[11px] text-muted-foreground">{unreadCount} unread messages</p>
             </div>
             <div className="max-h-80 overflow-y-auto">
               {mockNotifications.map((notification) => (
                 <div 
                   key={notification.id} 
                   className={cn(
-                    "p-4 border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer",
+                    "p-3 border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer",
                     !notification.read && "bg-primary/5"
                   )}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2.5">
                     <div className={cn(
-                      "w-2 h-2 rounded-full mt-1.5 flex-shrink-0",
+                      "w-2 h-2 rounded-full mt-1 flex-shrink-0",
                       notification.type === 'info' && "bg-info",
                       notification.type === 'success' && "bg-success",
                       notification.type === 'warning' && "bg-warning",
                       notification.type === 'error' && "bg-destructive"
                     )} />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">{notification.title}</p>
-                      <p className="text-sm text-muted-foreground truncate">{notification.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="font-medium text-xs">{notification.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{notification.message}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         {new Date(notification.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -111,8 +111,8 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
                 </div>
               ))}
             </div>
-            <div className="p-3 border-t border-border">
-              <Button variant="ghost" className="w-full text-sm">View all notifications</Button>
+            <div className="p-2 border-t border-border">
+              <Button variant="ghost" className="w-full text-xs h-8">View all notifications</Button>
             </div>
           </PopoverContent>
         </Popover>
@@ -120,28 +120,28 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
         {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="gap-2 pl-2 pr-3">
-              <Avatar className="w-8 h-8">
+            <Button variant="ghost" className="gap-2 pl-2 pr-3 h-9">
+              <Avatar className="w-7 h-7">
                 <AvatarImage src={user?.avatar} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                   {user?.name?.charAt(0) || 'A'}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden sm:block text-sm font-medium">{user?.name}</span>
+              <span className="hidden sm:block text-xs font-medium">{user?.name}</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => navigate('/settings')}>
-              <User className="w-4 h-4 mr-2" />
+          <DropdownMenuContent align="end" className="w-44 text-xs">
+            <DropdownMenuItem onClick={() => navigate('/settings')} className="text-xs">
+              <User className="w-3.5 h-3.5 mr-2" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/settings')}>
-              <Settings className="w-4 h-4 mr-2" />
+            <DropdownMenuItem onClick={() => navigate('/settings')} className="text-xs">
+              <Settings className="w-3.5 h-3.5 mr-2" />
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
-              <LogOut className="w-4 h-4 mr-2" />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive text-xs">
+              <LogOut className="w-3.5 h-3.5 mr-2" />
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>

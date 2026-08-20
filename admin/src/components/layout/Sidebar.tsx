@@ -15,6 +15,7 @@ import {
   Tag,
   Ticket,
   Image,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,7 @@ interface SidebarProps {
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/analytics', icon: BarChart3, label: 'Analytics & Reports' },
   { to: '/banners', icon: Image, label: 'Custom Banners' },
   { to: '/products', icon: Package, label: 'Products' },
   { to: '/orders', icon: ShoppingCart, label: 'Orders' },
@@ -52,7 +54,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             <Leaf className="w-5 h-5 text-primary-foreground" />
           </div>
           {!collapsed && (
-            <span className="font-semibold text-sidebar-foreground animate-fade-in">
+            <span className="text-xs font-semibold text-sidebar-foreground animate-fade-in">
               EcoAdmin
             </span>
           )}
@@ -81,11 +83,11 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               title={collapsed ? item.label : undefined}
             >
               <item.icon className={cn(
-                "w-5 h-5 flex-shrink-0 transition-colors",
+                "w-4 h-4 flex-shrink-0 transition-colors",
                 isActive ? "text-sidebar-primary-foreground" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
               )} />
               {!collapsed && (
-                <span className="animate-fade-in">{item.label}</span>
+                <span className="animate-fade-in text-xs">{item.label}</span>
               )}
             </NavLink>
           );
@@ -94,9 +96,9 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Bottom section */}
       {!collapsed && (
-        <div className="absolute bottom-4 left-4 right-4 p-4 rounded-lg bg-sidebar-accent animate-fade-in">
-          <p className="text-xs text-sidebar-foreground/60 mb-1">Need help?</p>
-          <p className="text-sm font-medium text-sidebar-foreground">View Documentation</p>
+        <div className="absolute bottom-4 left-4 right-4 p-3 rounded-lg bg-sidebar-accent animate-fade-in">
+          <p className="text-[11px] text-sidebar-foreground/60 mb-0.5">Need help?</p>
+          <p className="text-xs font-medium text-sidebar-foreground">View Documentation</p>
         </div>
       )}
     </aside>

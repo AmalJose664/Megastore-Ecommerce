@@ -21,6 +21,7 @@ import PromoPage from "./pages/PromoPage";
 import CouponsPage from "./pages/CouponsPage";
 import BannersPage from "./pages/BannersPage";
 import SettingsPage from "./pages/SettingsPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             {/* Protected Admin Routes */}
             <Route element={<AdminLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/products/new" element={<ProductFormPage />} />
               <Route path="/products/:id/edit" element={<ProductFormPage />} />

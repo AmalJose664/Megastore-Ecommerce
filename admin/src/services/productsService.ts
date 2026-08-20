@@ -198,6 +198,29 @@ class ProductsService {
       return false;
     }
   }
+
+  // POST /api/products/bulk-delete (Bulk Delete Products - Admin Only)
+  async bulkDeleteProducts(productIds: string[]): Promise<boolean> {
+    try {
+      const { data, error } = await apiHandler.handleRequest<{ success: boolean; message: string }>(
+        `${API_BASE_URL}/products/bulk-delete`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ productIds }),
+        }
+      );
+
+      if (error) {
+        console.error('Bulk delete products error:', error.message);
+        return false;
+      }
+
+      return data?.success || false;
+    } catch (error) {
+      console.error('Bulk delete products error:', error);
+      return false;
+    }
+  }
 }
 
 export const productsService = new ProductsService();
