@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 export interface CartItem {
   product: Product;
+  variantId?: string;
+  selectedVariant?: any;
   quantity: number;
 }
 
@@ -15,7 +17,7 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: "ADD_ITEM"; product: Product; quantity?: number }
+  | { type: "ADD_ITEM"; product: Product; quantity?: number; variantId?: string; selectedVariant?: any }
   | { type: "REMOVE_ITEM"; productId: string }
   | { type: "UPDATE_QUANTITY"; productId: string; quantity: number }
   | { type: "CLEAR_CART" }
@@ -25,7 +27,7 @@ type CartAction =
   | { type: "LOAD_CART"; items: CartItem[] };
 
 interface CartContextType extends CartState {
-  addItem: (product: Product, quantity?: number) => void;
+  addItem: (product: Product, quantity?: number, variantId?: string) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -44,7 +46,9 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM": {
       const existingIndex = state.items.findIndex(
-        (item) => item.product.id === action.product.id
+        (item) =>
+          (item.product.id || (item.product as any)._id) === (action.product.id || (action.product as any)._id) &&
+          (action.variantId ? item.variantId === action.variantId : !item.variantId)
       );
       if (existingIndex > -1) {
         const newItems = [...state.items];
@@ -53,26 +57,38 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       }
       return {
         ...state,
-        items: [...state.items, { product: action.product, quantity: action.quantity || 1 }],
+        items: [
+          ...state.items,
+          {
+            product: action.product,
+            quantity: action.quantity || 1,
+            variantId: action.variantId,
+            selectedVariant: action.selectedVariant,
+          },
+        ],
         isOpen: true,
       };
     }
     case "REMOVE_ITEM":
       return {
         ...state,
-        items: state.items.filter((item) => item.product.id !== action.productId),
+        items: state.items.filter(
+          (item) => (item.product.id || (item.product as any)._id) !== action.productId
+        ),
       };
     case "UPDATE_QUANTITY": {
       if (action.quantity <= 0) {
         return {
           ...state,
-          items: state.items.filter((item) => item.product.id !== action.productId),
+          items: state.items.filter(
+            (item) => (item.product.id || (item.product as any)._id) !== action.productId
+          ),
         };
       }
       return {
         ...state,
         items: state.items.map((item) =>
-          item.product.id === action.productId
+          (item.product.id || (item.product as any)._id) === action.productId
             ? { ...item, quantity: action.quantity }
             : item
         ),
@@ -93,6 +109,15 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   }
 }
 
+const mapBackendItems = (items: any[]): CartItem[] => {
+  return (items || []).map((item: any) => ({
+    product: item.product,
+    variantId: item.variantId,
+    selectedVariant: item.selectedVariant,
+    quantity: item.quantity,
+  }));
+};
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
@@ -100,7 +125,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   });
   const { user, isAuthenticated } = useAuth();
   const isInitialMount = useRef(true);
-  const isSyncing = useRef(false);
 
   // Sync with Backend when Logged In (including merging guest cart from localStorage)
   useEffect(() => {
@@ -127,17 +151,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
             res = await mergeCartApi(itemsToMerge);
             // Clear guest cart from localStorage after successful merge
             localStorage.removeItem(CART_STORAGE_KEY);
+            toast.success("Guest cart merged with your account!");
           } else {
             // No guest cart to merge, just fetch user cart
             res = await fetchCart();
           }
 
           if (res && res.success && res.data) {
-            const backendItems = res.data.items.map((item: any) => ({
-              product: item.product,
-              quantity: item.quantity,
-            }));
-            dispatch({ type: "LOAD_CART", items: backendItems });
+            dispatch({ type: "LOAD_CART", items: mapBackendItems(res.data.items) });
           }
         } catch (error) {
           console.error("Failed to sync cart with backend:", error);
@@ -165,24 +186,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [state.items, isAuthenticated]);
 
-  const addItem = async (product: Product, quantity?: number) => {
+  const addItem = async (product: Product, quantity?: number, variantId?: string) => {
     const q = quantity || 1;
+    const prodId = product.id || (product as any)._id;
     if (isAuthenticated) {
       try {
-        const res = await addToCartApi(product.id, q);
+        const res = await addToCartApi(prodId, q, variantId);
         if (res.success) {
-          const backendItems = res.data.items.map((item: any) => ({
-            product: item.product,
-            quantity: item.quantity
-          }));
-          dispatch({ type: "LOAD_CART", items: backendItems });
+          dispatch({ type: "LOAD_CART", items: mapBackendItems(res.data.items) });
           dispatch({ type: "OPEN_CART" });
         }
       } catch (err: any) {
         toast.error(err.message || "Failed to add to cart");
       }
     } else {
-      dispatch({ type: "ADD_ITEM", product, quantity });
+      let selectedVariant: any = undefined;
+      if (variantId && (product as any).hasVariants && Array.isArray((product as any).variants)) {
+        selectedVariant = (product as any).variants.find((v: any) => (v._id || v.id)?.toString() === variantId);
+      }
+      dispatch({ type: "ADD_ITEM", product, quantity, variantId, selectedVariant });
     }
   };
 
@@ -191,11 +213,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         const res = await removeFromCartApi(productId);
         if (res.success) {
-          const backendItems = res.data.items.map((item: any) => ({
-            product: item.product,
-            quantity: item.quantity
-          }));
-          dispatch({ type: "LOAD_CART", items: backendItems });
+          dispatch({ type: "LOAD_CART", items: mapBackendItems(res.data.items) });
         }
       } catch (err: any) {
         toast.error(err.message || "Failed to remove item");
@@ -210,11 +228,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         const res = await updateCartItemApi(productId, quantity);
         if (res.success) {
-          const backendItems = res.data.items.map((item: any) => ({
-            product: item.product,
-            quantity: item.quantity
-          }));
-          dispatch({ type: "LOAD_CART", items: backendItems });
+          dispatch({ type: "LOAD_CART", items: mapBackendItems(res.data.items) });
         }
       } catch (err: any) {
         toast.error(err.message || "Failed to update quantity");
@@ -251,7 +265,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = state.items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
+    (sum, item) => sum + (item.selectedVariant?.price || item.product?.price || 0) * item.quantity,
     0
   );
 

@@ -62,72 +62,83 @@ export function CartDrawer() {
                 </div>
               ) : (
                 <ul className="space-y-4">
-                  {items.map((item) => (
-                    <motion.li
-                      key={item.product.id}
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -100 }}
-                      className="flex gap-4 rounded-lg bg-secondary/50 p-3"
-                    >
-                      <img
-                        src={item.product.images[0]}
-                        alt={item.product.name}
-                        className="h-24 w-24 rounded-lg object-cover"
-                      />
-                      <div className="flex flex-1 flex-col">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-medium leading-tight">
-                              {item.product.name}
-                            </h4>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              ₹{item.product.price.toFixed(2)}
-                            </p>
+                  {items.map((item) => {
+                    const prodId = item.product.id || (item.product as any)._id;
+                    const itemPrice = item.selectedVariant?.price || item.product.price || 0;
+                    return (
+                      <motion.li
+                        key={prodId}
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        className="flex gap-4 rounded-lg bg-secondary/50 p-3"
+                      >
+                        <img
+                          src={item.product.images?.[0] || 'https://via.placeholder.com/150'}
+                          alt={item.product.name}
+                          className="h-24 w-24 rounded-lg object-cover"
+                        />
+                        <div className="flex flex-1 flex-col">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-medium leading-tight">
+                                {item.product.name}
+                              </h4>
+                              {item.selectedVariant && (
+                                <p className="text-[11px] font-medium text-primary mt-0.5">
+                                  {Object.entries(item.selectedVariant.attributes || {})
+                                    .map(([k, v]) => `${k.toUpperCase()}: ${v}`)
+                                    .join(" | ")}
+                                </p>
+                              )}
+                              <p className="mt-1 text-sm text-muted-foreground">
+                                ₹{itemPrice.toFixed(2)}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => removeItem(prodId)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                            onClick={() => removeItem(item.product.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
 
-                        {/* Quantity Controls */}
-                        <div className="mt-auto flex items-center gap-2 pt-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() =>
-                              updateQuantity(item.product.id, item.quantity - 1)
-                            }
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="w-8 text-center text-sm font-medium">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() =>
-                              updateQuantity(item.product.id, item.quantity + 1)
-                            }
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                          <span className="ml-auto font-semibold">
-                            ₹{(item.product.price * item.quantity).toFixed(2)}
-                          </span>
+                          {/* Quantity Controls */}
+                          <div className="mt-auto flex items-center gap-2 pt-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() =>
+                                updateQuantity(prodId, item.quantity - 1)
+                              }
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-8 text-center text-sm font-medium">
+                              {item.quantity}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() =>
+                                updateQuantity(prodId, item.quantity + 1)
+                              }
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                            <span className="ml-auto font-semibold">
+                              ₹{(itemPrice * item.quantity).toFixed(2)}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </motion.li>
-                  ))}
+                      </motion.li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

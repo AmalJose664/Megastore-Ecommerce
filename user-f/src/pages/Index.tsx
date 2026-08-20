@@ -7,11 +7,14 @@ import { CategoriesGrid } from "@/components/home/CategoriesGrid";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { Testimonials } from "@/components/home/Testimonials";
 import { BannerSections } from "@/components/home/BannerSections";
+import { CategoryStripe } from "@/components/common/CategoryStripe";
+import RecentlyViewedProducts from "@/components/common/RecentlyViewedProducts";
 
 const Index = () => {
   return (
     <>
       <Navbar />
+      <CategoryStripe />
       <CartDrawer />
       <main>
         <HeroSection />
@@ -20,6 +23,7 @@ const Index = () => {
         <CategoriesGrid />
         <PromoBanner />
         <Testimonials />
+        <RecentlyViewedProducts />
       </main>
       <Footer />
     </>

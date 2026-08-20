@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import RecentlyViewedProducts from "@/components/common/RecentlyViewedProducts";
 
 const Cart = () => {
   const { items, removeItem, updateQuantity, subtotal, totalItems, clearCart } =
@@ -68,79 +69,90 @@ const Cart = () => {
             {/* Cart Items */}
             <div className="lg:col-span-2">
               <div className="space-y-4">
-                {items.map((item, index) => (
-                  <motion.div
-                    key={item.product.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex gap-4 rounded-xl bg-card p-4 shadow-soft sm:gap-6 sm:p-6"
-                  >
-                    <Link to={`/products/${item.product.id}`}>
-                      <img
-                        src={item.product.images[0]}
-                        alt={item.product.name}
-                        className="h-24 w-24 rounded-lg object-cover sm:h-32 sm:w-32"
-                      />
-                    </Link>
+                {items.map((item, index) => {
+                  const prodId = item.product.id || (item.product as any)._id;
+                  const itemPrice = item.selectedVariant?.price || item.product.price || 0;
+                  return (
+                    <motion.div
+                      key={prodId}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex gap-4 rounded-xl bg-card p-4 shadow-soft sm:gap-6 sm:p-6"
+                    >
+                      <Link to={`/products/${prodId}`}>
+                        <img
+                          src={item.product.images?.[0] || 'https://via.placeholder.com/150'}
+                          alt={item.product.name}
+                          className="h-24 w-24 rounded-lg object-cover sm:h-32 sm:w-32"
+                        />
+                      </Link>
 
-                    <div className="flex flex-1 flex-col">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <Link
-                            to={`/products/${item.product.id}`}
-                            className="font-medium hover:text-primary"
+                      <div className="flex flex-1 flex-col">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <Link
+                              to={`/products/${prodId}`}
+                              className="font-medium hover:text-primary"
+                            >
+                              {item.product.name}
+                            </Link>
+                            {item.selectedVariant && (
+                              <p className="text-xs text-primary font-medium mt-1">
+                                {Object.entries(item.selectedVariant.attributes || {})
+                                  .map(([k, v]) => `${k.toUpperCase()}: ${v}`)
+                                  .join(" | ")}
+                              </p>
+                            )}
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              ₹{itemPrice.toFixed(2)}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => removeItem(prodId)}
                           >
-                            {item.product.name}
-                          </Link>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            ₹{item.product.price.toFixed(2)}
-                          </p>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:text-destructive"
-                          onClick={() => removeItem(item.product.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
 
-                      <div className="mt-auto flex items-center justify-between pt-4">
-                        {/* Quantity */}
-                        <div className="flex items-center rounded-lg border border-input">
-                          <button
-                            onClick={() =>
-                              updateQuantity(
-                                item.product.id,
-                                Math.max(0, item.quantity - 1)
-                              )
-                            }
-                            className="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-                          >
-                            <Minus className="h-3 w-3" />
-                          </button>
-                          <span className="w-8 text-center text-sm font-medium">
-                            {item.quantity}
+                        <div className="mt-auto flex items-center justify-between pt-4">
+                          {/* Quantity */}
+                          <div className="flex items-center rounded-lg border border-input">
+                            <button
+                              onClick={() =>
+                                updateQuantity(
+                                  prodId,
+                                  Math.max(0, item.quantity - 1)
+                                )
+                              }
+                              className="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <span className="w-8 text-center text-sm font-medium">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                updateQuantity(prodId, item.quantity + 1)
+                              }
+                              className="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+                          </div>
+
+                          <span className="text-lg font-semibold">
+                            ₹{(itemPrice * item.quantity).toFixed(2)}
                           </span>
-                          <button
-                            onClick={() =>
-                              updateQuantity(item.product.id, item.quantity + 1)
-                            }
-                            className="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-                          >
-                            <Plus className="h-3 w-3" />
-                          </button>
                         </div>
-
-                        <span className="text-lg font-semibold">
-                          ₹{(item.product.price * item.quantity).toFixed(2)}
-                        </span>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
 
               {/* Continue Shopping */}
@@ -227,6 +239,7 @@ const Cart = () => {
             </div>
           </div>
         </div>
+        <RecentlyViewedProducts />
       </main>
       <Footer />
     </>

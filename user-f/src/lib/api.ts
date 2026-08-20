@@ -226,10 +226,10 @@ export const fetchCart = async () => {
     return apiRequest("/cart");
 };
 
-export const addToCartApi = async (productId: string, quantity: number) => {
+export const addToCartApi = async (productId: string, quantity: number, variantId?: string) => {
     return apiRequest("/cart/items", {
         method: "POST",
-        body: JSON.stringify({ productId, quantity }),
+        body: JSON.stringify({ productId, quantity, variantId }),
     });
 };
 

@@ -163,7 +163,7 @@ export const Categories = () => {
                         <PackageCheck className="h-3.5 w-3.5" /> Full Collection
                       </span>
                       <Button
-                        onClick={() => navigate(`/products?category=${category._id}`)}
+                        onClick={() => navigate(`/products?category=${category.slug || category._id}`)}
                         variant="ghost"
                         className="rounded-xl group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 font-bold text-xs uppercase tracking-widest flex items-center gap-2"
                       >

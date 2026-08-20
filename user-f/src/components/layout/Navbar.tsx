@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, Search, User, Menu, X } from "lucide-react";
+import { ShoppingBag, Search, User, Menu, X, Heart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { useSiteSettings } from "@/context/SettingsContext";
 
 const navLinks = [
@@ -14,32 +15,70 @@ const navLinks = [
   { name: "About", path: "/about" },
 ];
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+
   const location = useLocation();
+  const navigate = useNavigate();
   const { totalItems, toggleCart } = useCart();
   const { user } = useAuth();
+  const { wishlistItems } = useWishlist();
   const { settings } = useSiteSettings();
+
+  // Debounced search suggestions fetch
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/products/suggestions?q=${encodeURIComponent(searchQuery)}`);
+        const data = await response.json();
+        if (data.success && Array.isArray(data.data)) {
+          setSuggestions(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch suggestions:", err);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSelectSuggestion = (productId: string) => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    setSuggestions([]);
+    navigate(`/products/${productId}`);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      setIsSearchOpen(false);
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
-      <nav className="container flex h-16 items-center justify-between lg:h-20">
-        {/* Mobile Menu Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-
+      <nav className="container flex h-16 items-center justify-between gap-4 lg:h-20">
         {/* Logo */}
         <Link
           to="/"
-          className="font-display text-xl font-semibold tracking-tight lg:text-2xl flex items-center gap-2"
+          className="font-display text-xl font-semibold tracking-tight lg:text-2xl flex items-center gap-2 shrink-0"
         >
           {settings.logoUrl ? (
             <img src={settings.logoUrl} alt={settings.siteName} className="h-8 max-w-[140px] object-contain" />
@@ -48,46 +87,95 @@ export function Navbar() {
           )}
         </Link>
 
-        {/* Desktop Navigation */}
-        <ul className="hidden lg:flex lg:items-center lg:gap-8">
-          {navLinks.map((link) => (
-            <li key={link.path}>
-              <Link
-                to={link.path}
-                className={`relative py-2 text-sm font-medium transition-colors hover:text-primary ${location.pathname === link.path
-                  ? "text-primary"
-                  : "text-muted-foreground"
-                  }`}
+        {/* Prominent Long Search Bar */}
+        <div className="flex-1 max-w-2xl mx-2 lg:mx-6 relative">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search products, categories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-2xl border border-border/80 bg-secondary/40 py-2.5 pl-11 pr-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-inner"
+            />
+
+            {loadingSuggestions ? (
+              <Loader2 className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+            ) : searchQuery.trim() !== "" ? (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(""); setSuggestions([]); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
               >
-                {link.name}
-                {location.pathname === link.path && (
-                  <motion.div
-                    layoutId="navbar-indicator"
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
+                <X className="h-3.5 w-3.5" />
+              </button>
+            ) : null}
+          </form>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsSearchOpen(!isSearchOpen)}
-            aria-label="Search"
-          >
-            <Search className="h-5 w-5" />
-          </Button>
+          {/* Floating Autocomplete Suggestions Overlay */}
+          {searchQuery.trim() !== "" && (
+            <div className="absolute left-0 right-0 top-full mt-2 bg-card border border-border/80 rounded-2xl p-2 shadow-2xl max-h-80 overflow-y-auto z-50">
+              {suggestions.length === 0 ? (
+                <div className="p-4 text-center text-xs text-muted-foreground">
+                  {loadingSuggestions ? "Searching products..." : "No matching products found."}
+                </div>
+              ) : (
+                <div className="divide-y divide-border/40">
+                  <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Search Suggestions
+                  </div>
+                  {suggestions.map((item) => (
+                    <button
+                      key={item._id || item.id}
+                      onClick={() => handleSelectSuggestion(item._id || item.id)}
+                      className="w-full p-2.5 flex items-center gap-3 hover:bg-secondary/60 rounded-xl transition-colors text-left group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-secondary/80 border border-border/50 overflow-hidden shrink-0">
+                        {item.images && item.images[0] ? (
+                          <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        ) : (
+                          <Search className="h-4 w-4 text-muted-foreground m-auto mt-3" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-foreground truncate group-hover:text-primary transition-colors">{item.name}</p>
+                        <p className="text-[10px] text-muted-foreground">₹{item.price?.toFixed(2)}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
+        {/* Actions (Wishlist, Profile, Cart) */}
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          <Link to="/categories" className="text-xs uppercase" >
+            Categories
+          </Link>
+          {/* Wishlist Link */}
+          <Link to="/wishlist">
+            <Button variant="ghost" size="icon" className="relative" aria-label="Wishlist">
+              <Heart className="h-5 w-5" />
+              {wishlistItems.length > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground"
+                >
+                  {wishlistItems.length}
+                </motion.span>
+              )}
+            </Button>
+          </Link>
+
+          {/* User Profile */}
           <Link to={user ? "/profile" : "/login"}>
             <Button variant="ghost" size="icon" aria-label="Account">
               {user ? (
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-                  {user.firstName[0]}
+                  {user.firstName ? user.firstName[0] : 'U'}
                 </div>
               ) : (
                 <User className="h-5 w-5" />
@@ -95,6 +183,7 @@ export function Navbar() {
             </Button>
           </Link>
 
+          {/* Cart Drawer Toggle */}
           <Button
             variant="ghost"
             size="icon"
@@ -115,59 +204,6 @@ export function Navbar() {
           </Button>
         </div>
       </nav>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden border-t border-border lg:hidden"
-          >
-            <ul className="container flex flex-col gap-2 py-4">
-              {navLinks.map((link) => (
-                <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`block rounded-lg px-4 py-3 text-base font-medium transition-colors ${location.pathname === link.path
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-muted"
-                      }`}
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Search Bar */}
-      <AnimatePresence>
-        {isSearchOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute left-0 right-0 top-full border-b border-border bg-background p-4"
-          >
-            <div className="container">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  className="w-full rounded-lg border border-input bg-secondary/50 py-3 pl-12 pr-4 text-base focus:outline-none focus:ring-2 focus:ring-ring"
-                  autoFocus
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </header>
   );
 }
