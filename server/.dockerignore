@@ -1,0 +1,13 @@
+# Ignore development files
+node_modules
+eslint.config.mjs
+.dockerignore
+Dockerfile
+.env
+.prettierrc
+.prettierignore
+README.md
+testFns.ts
+# Optional
+npm - debug.log
+*.log
